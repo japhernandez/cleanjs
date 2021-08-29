@@ -1,5 +1,5 @@
 {
-  "name": "cleanjs/framework",
+  "name": "clean-framework",
   "version": "1.0.0",
   "description": "Plugin for API Rest Full development, based on Clean Architecture, IoC and Dependency Injection.",
   "main": "index.js",
