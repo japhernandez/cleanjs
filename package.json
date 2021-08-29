@@ -6,7 +6,6 @@
   "scripts": {
     "start": "node ./dist/index.js",
     "build": "tsc -w -p tsconfig.json",
-    "watch": "nodemon --exec \"npm run build && npm run start\" --watch src --ext ts",
     "prepublish": "npm run build"
   },
   "repository": {
