@@ -115,7 +115,6 @@ export class DependenciesScanner {
   public async scanModulesForDependencies() {
     const modules = this.container.getModules();
 
-    // @ts-ignore
     for (const [token, { metatype }] of modules) {
       await this.reflectImports(metatype, token, metatype.name);
       this.reflectProviders(metatype, token);
@@ -248,17 +247,16 @@ export class DependenciesScanner {
     method: string,
   ) {
     let prototype = component.prototype;
+    prototype = Reflect.getPrototypeOf(prototype);
+
     do {
       const descriptor = Reflect.getOwnPropertyDescriptor(prototype, method);
       if (!descriptor) {
         continue;
       }
       return Reflect.getMetadata(key, descriptor.value);
-    } while (
-      (prototype = Reflect.getPrototypeOf(prototype)) &&
-      prototype !== Object.prototype &&
-      prototype
-    );
+    } while (prototype  && prototype !== Object.prototype && prototype);
+
     return undefined;
   }
 

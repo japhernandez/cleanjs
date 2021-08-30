@@ -17,6 +17,9 @@ export class MetadataScanner {
   }
 
   *getAllFilteredMethodNames(prototype: object): IterableIterator<string> {
+
+    console.log('prototype', prototype)
+
     const isMethod = (prop: string) => {
       const descriptor = Object.getOwnPropertyDescriptor(prototype, prop);
       if (descriptor.set || descriptor.get) {

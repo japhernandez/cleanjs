@@ -82,9 +82,9 @@ export class ExternalContextCreator {
   ) {
     const module = this.getContextModuleName(instance.constructor);
     const { argsLength, paramtypes, getParamsMetadata } = this.getMetadata<
-      TParamsMetadata,
-      TContext
+        TParamsMetadata, TContext
     >(instance, methodName, metadataKey, paramsFactory, contextType);
+
     const pipes = this.pipesContextCreator.create(
       instance,
       callback,
@@ -116,10 +116,7 @@ export class ExternalContextCreator {
       : [];
 
     const fnApplyPipes = this.createPipesFn(pipes, paramsOptions);
-    const handler = (
-      initialArgs: unknown[],
-      ...args: unknown[]
-    ) => async () => {
+    const handler = (initialArgs: unknown[], ...args: unknown[]) => async () => {
       if (fnApplyPipes) {
         await fnApplyPipes(initialArgs, ...args);
         return callback.apply(instance, initialArgs);
