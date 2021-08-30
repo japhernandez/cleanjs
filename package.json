@@ -4,7 +4,7 @@
   "description": "Plugin for API Rest Full development, based on Clean Architecture, IoC and Dependency Injection.",
   "main": "index.js",
   "scripts": {
-    "start": "node ./dist/index.js",
+    "start": "node dist/index.js",
     "build": "tsc -p tsconfig.json",
     "prepublish": "npm run build"
   },
@@ -26,9 +26,6 @@
     "url": "https://github.com/john-piedrahita/cleanjs/issues"
   },
   "homepage": "https://github.com/john-piedrahita/cleanjs#readme",
-  "_moduleAliases": {
-    "@": "dist"
-  },
   "dependencies": {
     "body-parser": "^1.19.0",
     "cors": "^2.8.5",
@@ -47,6 +44,7 @@
     "@types/express": "^4.17.12",
     "@types/node": "^15.12.5",
     "@types/reflect-metadata": "^0.1.0",
+    "@types/uuid": "^8.3.1",
     "@typescript-eslint/eslint-plugin": "^4.28.1",
     "@typescript-eslint/parser": "^4.28.1",
     "eslint": "^7.29.0",
@@ -56,8 +54,6 @@
     "typescript": "^4.3.4"
   },
   "files": [
-    "dist",
-    "package.json",
-    "README.md"
+    "dist", "package.json", "README.md"
   ]
 }

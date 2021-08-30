@@ -3,12 +3,12 @@ import cors from 'cors';
 import express from 'express';
 import * as http from 'http';
 import * as https from 'https';
-import {AbstractHttpAdapter} from "@/lib/adapters";
-import {RouterMethodFactory} from "@/lib/helpers";
-import {isFunction, isNil, isObject} from "@/lib/utils";
-import {CorsOptions, CorsOptionsDelegate, NestApplicationOptions} from "@/lib/contracts";
-import {RequestMethod} from "@/lib/enums";
 
+import {CorsOptions, CorsOptionsDelegate, NestApplicationOptions} from "../../contracts";
+import {AbstractHttpAdapter} from "../../adapters";
+import {RouterMethodFactory} from "../../helpers";
+import {isFunction, isNil, isObject} from "../../utils";
+import {RequestMethod} from "../../enums";
 
 export class ExpressAdapter extends AbstractHttpAdapter {
   private readonly routerMethodFactory = new RouterMethodFactory();
@@ -51,8 +51,8 @@ export class ExpressAdapter extends AbstractHttpAdapter {
     return response.set(name, value);
   }
 
-  public listen(port: string | number, callback?: () => void);
-  public listen(port: string | number, hostname: string, callback?: () => void);
+  // public listen(port: string | number, callback?: () => void);
+  // public listen(port: string | number, hostname: string, callback?: () => void);
   public listen(port: any, ...args: any[]) {
     return this.httpServer.listen(port, ...args);
   }
