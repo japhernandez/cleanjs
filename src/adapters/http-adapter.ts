@@ -1,17 +1,13 @@
-import {CorsOptions, CorsOptionsDelegate, HttpServer, NestApplicationOptions, RequestHandler} from "../contracts";
 import {RequestMethod} from "../enums";
+import {CorsOptions, CorsOptionsDelegate, HttpServer, NestApplicationOptions, RequestHandler} from "../contracts";
 
-export abstract class AbstractHttpAdapter<
-  TServer = any,
-  TRequest = any,
-  TResponse = any
-> implements HttpServer<TRequest, TResponse> {
-  protected httpServer: TServer;
+export abstract class AbstractHttpAdapter<S = any, T = any, R = any> implements HttpServer<T, R> {
+  protected httpServer: S;
 
   protected constructor(protected readonly instance: any) {}
 
-  all(path: string, handler: RequestHandler<TRequest, TResponse>);
-  all(handler: RequestHandler<TRequest, TResponse>);
+  all(path: string, handler: RequestHandler<T, R>);
+  all(handler: RequestHandler<T, R>);
   all(path: any, handler?: any) {
     throw new Error('Method not implemented.');
   }
@@ -73,12 +69,8 @@ export abstract class AbstractHttpAdapter<
     return this.instance.listen(port, hostname, callback);
   }
 
-  public getHttpServer(): TServer {
+  public getHttpServer(): S {
     return this.httpServer;
-  }
-
-  public setHttpServer(httpServer: TServer) {
-    this.httpServer = httpServer;
   }
 
   public getInstance<T = any>(): T {
@@ -99,14 +91,7 @@ export abstract class AbstractHttpAdapter<
   abstract setNotFoundHandler(handler: Function, prefix?: string);
   abstract setHeader(response, name: string, value: string);
   abstract registerParserMiddleware(prefix?: string);
-  abstract enableCors(
-    options: CorsOptions | CorsOptionsDelegate<TRequest>,
-    prefix?: string,
-  );
-  abstract createMiddlewareFactory(
-    requestMethod: RequestMethod,
-  ):
-    | ((path: string, callback: Function) => any)
-    | Promise<(path: string, callback: Function) => any>;
+  abstract enableCors(options: CorsOptions | CorsOptionsDelegate<T>, prefix?: string);
+  abstract createMiddlewareFactory(requestMethod: RequestMethod): ((path: string, callback: Function) => any) | Promise<(path: string, callback: Function) => any>;
   abstract getType(): string;
 }
