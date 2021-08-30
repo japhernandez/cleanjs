@@ -20,13 +20,12 @@ import {
 import { STATIC_CONTEXT } from '../ioc';
 import { InterceptorsConsumer, InterceptorsContextCreator } from '../interceptors';
 import { PipesConsumer, PipesContextCreator } from '../pipes';
-import { IRouteParamsFactory } from '../contracts';
 import {
   CustomHeader,
   RedirectResponse,
   RouterResponseController,
 } from './router-response-controller';
-import {ContextType, Controller, HttpServer, PipeTransform} from "../contracts";
+import {ContextType, Controller, HttpServer, PipeTransform, IRouteParamsFactory} from "../contracts";
 import {ParamData, RouteParamMetadata} from "../decorators";
 
 
@@ -135,7 +134,7 @@ export class RouterExecutionContext {
         handler(args, req, res, next),
         contextType,
       );
-      await (fnHandleResponse as HandlerResponseBasicFn)(result, res, req);
+      await (fnHandleResponse)(result, res, req);
     };
   }
 
@@ -170,14 +169,14 @@ export class RouterExecutionContext {
       callback,
     );
     const getParamsMetadata = (
-      moduleKey: string,
+      key: string,
       contextId = STATIC_CONTEXT,
       inquirerId?: string,
     ) =>
       this.exchangeKeysForValues(
         keys,
         metadata,
-        moduleKey,
+        key,
         contextId,
         inquirerId,
         contextFactory,
@@ -363,7 +362,7 @@ export class RouterExecutionContext {
     const renderTemplate = this.reflectRenderTemplate(callback);
     if (renderTemplate) {
       return async <TResult, TResponse>(result: TResult, res: TResponse) => {
-        return await this.responseController.render(
+        return this.responseController.render(
           result,
           res,
           renderTemplate,
