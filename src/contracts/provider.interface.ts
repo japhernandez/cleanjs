@@ -13,6 +13,8 @@ export type Provider<T = any> =
   | FactoryProvider<T>
   | ExistingProvider<T>;
 
+type GeTypes = string | symbol | Type<any> | Abstract<any> | Function;
+
 /**
  * Interface defining a *Class* type provider.
  *
@@ -36,7 +38,7 @@ export interface ClassProvider<T = any> {
   /**
    * Injection token
    */
-  provide: string | symbol | Type<any> | Abstract<any> | Function;
+  provide: GeTypes;
   /**
    * Type (class name) of provider (instance to be injected).
    */
@@ -66,7 +68,7 @@ export interface ValueProvider<T = any> {
   /**
    * Injection token
    */
-  provide: string | symbol | Type<any> | Abstract<any> | Function;
+  provide: GeTypes;
   /**
    * Instance of a provider to be injected.
    */
@@ -97,7 +99,7 @@ export interface FactoryProvider<T = any> {
   /**
    * Injection token
    */
-  provide: string | symbol | Type<any> | Abstract<any> | Function;
+  provide: GeTypes;
   /**
    * Factory function that returns an instance of the provider to be injected.
    */
@@ -131,7 +133,7 @@ export interface ExistingProvider<T = any> {
   /**
    * Injection token
    */
-  provide: string | symbol | Type<any> | Abstract<any> | Function;
+  provide: GeTypes;
   /**
    * Provider to be aliased by the Injection token.
    */
