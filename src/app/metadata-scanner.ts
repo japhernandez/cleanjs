@@ -26,15 +26,14 @@ export class MetadataScanner {
       return !isConstructor(prop) && isFunction(prototype[prop]);
     };
 
-    console.log('prototype', Reflect.getPrototypeOf(prototype))
+    console.log('prototype', )
+
+      let type = Reflect.getPrototypeOf(prototype)
 
     do {
       yield* iterate(Object.getOwnPropertyNames(prototype))
         .filter(isMethod)
         .toArray();
-    } while (
-      (prototype = Reflect.getPrototypeOf(prototype)) &&
-      prototype !== Object.prototype
-    );
+    } while ((type) && prototype !== Object.prototype);
   }
 }
