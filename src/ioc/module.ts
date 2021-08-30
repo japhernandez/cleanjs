@@ -18,6 +18,8 @@ import {
 } from '../contracts';
 import { isFunction, isNil, isString, isSymbol, isUndefined, randomStringGenerator } from '../utils';
 
+type GetTypes = ClassProvider | FactoryProvider | ValueProvider | ExistingProvider;
+
 interface ProviderName {
   name?: string | symbol;
 }
@@ -202,11 +204,7 @@ export class Module {
 
   public isCustomProvider(
     provider: Provider,
-  ): provider is
-    | ClassProvider
-    | FactoryProvider
-    | ValueProvider
-    | ExistingProvider {
+  ): provider is GetTypes {
     return !isNil(
       (provider as
         | ClassProvider
@@ -359,13 +357,7 @@ export class Module {
     addExportedUnit(provider.name);
   }
 
-  public addCustomExportedProvider(
-    provider:
-      | FactoryProvider
-      | ValueProvider
-      | ClassProvider
-      | ExistingProvider,
-  ) {
+  public addCustomExportedProvider(provider: GetTypes) {
     const provide = provider.provide;
     if (isString(provide) || isSymbol(provide)) {
       return this._exports.add(this.validateExportedProvider(provide));
@@ -465,7 +457,6 @@ export class Module {
   }
 
   public createModuleReferenceType(): Type<ModuleRef> {
-    // eslint-disable-next-line @typescript-eslint/no-this-alias
     const self = this;
     return class extends ModuleRef {
       constructor() {
