@@ -1,9 +1,6 @@
-import { ApplicationConfig } from '../app/application-config';
-import { CircularDependencyException } from '../exceptions/circular-dependency.exception';
-import { UndefinedForwardRefException } from '../exceptions/undefined-forwardref.exception';
-import { UnknownModuleException } from '../exceptions/unknown-module.exception';
-import { ExternalContextCreator } from '../helpers/external-context-creator';
-import { HttpAdapterHost } from '../helpers';
+import { ApplicationConfig } from '../app';
+import { CircularDependencyException, UndefinedForwardRefException, UnknownModuleException } from '../exceptions';
+import { ExternalContextCreator, HttpAdapterHost } from '../helpers';
 import { REQUEST } from '../routers';
 import { ModuleCompiler } from './compiler';
 import { ContextId } from './instance-wrapper';
@@ -12,7 +9,7 @@ import { InternalProvidersStorage } from './internal-providers-storage';
 import { Module } from './module';
 import { ModuleTokenFactory } from './module-token-factory';
 import { ModulesContainer } from './modules-container';
-import { GLOBAL_MODULE_METADATA } from '../utils/constants';
+import { GLOBAL_MODULE_METADATA } from '../utils';
 import {DynamicModule, InjectableInterface, Provider, Type} from "../contracts";
 
 export class NestContainer {
@@ -184,12 +181,11 @@ export class NestContainer {
     this.modules.clear();
   }
 
-  public replace(toReplace: any, options: any & { scope: any[] | null }) {
+  public replace(toReplace: string | symbol, options: string | symbol & { scope: string[] | null }) {
     this.modules.forEach(moduleRef => moduleRef.replace(toReplace, options));
   }
 
   public bindGlobalScope() {
-    console.log('-----------------3---------------')
     this.modules.forEach(moduleRef => this.bindGlobalsToImports(moduleRef));
   }
 
@@ -218,7 +214,6 @@ export class NestContainer {
   }
 
   public createCoreModule(): DynamicModule {
-    console.log('-----------------7----------------------')
     return InternalCoreModule.register([
       {
         provide: ExternalContextCreator,
