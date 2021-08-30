@@ -29,12 +29,11 @@ export class RouterResponseController {
     redirectResponse: RedirectResponse,
   ) {
     const result = await this.transformToResult(resultOrDeferred);
-    const statusCode =
-      result && result.statusCode
-        ? result.statusCode
-        : redirectResponse.statusCode
-        ? redirectResponse.statusCode
-        : HttpStatus.FOUND;
+    const statusCode = result && result.statusCode;
+    if (statusCode) return result.statusCode;
+
+    redirectResponse.statusCode ? redirectResponse.statusCode : HttpStatus.FOUND;
+
     const url = result && result.url ? result.url : redirectResponse.url;
     this.applicationRef.redirect(response, statusCode, url);
   }
@@ -56,12 +55,10 @@ export class RouterResponseController {
   }
 
   public getStatusByMethod(requestMethod: RequestMethod): number {
-    switch (requestMethod) {
-      case RequestMethod.POST:
-        return HttpStatus.CREATED;
-      default:
-        return HttpStatus.OK;
-    }
+    if (requestMethod === RequestMethod.POST)
+      return HttpStatus.CREATED;
+    else
+      return HttpStatus.OK;
   }
 
   public setHeaders<TResponse = unknown>(
