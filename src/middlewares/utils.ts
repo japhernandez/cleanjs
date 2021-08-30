@@ -1,8 +1,8 @@
-import { HttpServer, RouteInfo, Type } from '../contracts';
-import { isFunction } from '../utils';
+import {HttpServer, RouteInfo, Type} from '../contracts';
+import {isFunction} from '../utils';
 import * as pathToRegexp from 'path-to-regexp';
-import { v4 as uuid } from 'uuid';
-import { iterate } from 'iterare';
+import {v4 as uuid} from 'uuid';
+import {iterate} from 'iterare';
 import {RequestMethod} from "../enums";
 
 type RouteInfoRegex = RouteInfo & { regex: RegExp };
@@ -92,11 +92,10 @@ export function isRouteExcluded(
       ? originalUrl.slice(0, queryParamsIndex)
       : originalUrl;
 
-  const isExcluded = excludedRoutes.some(({ method, regex }) => {
+  return excludedRoutes.some(({method, regex}) => {
     if (RequestMethod.ALL === method || RequestMethod[method] === reqMethod) {
       return regex.exec(pathname);
     }
     return false;
   });
-  return isExcluded;
 }
