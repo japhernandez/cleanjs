@@ -23,19 +23,17 @@ export const isPlainObject = (fn: any): fn is object => {
   );
 };
 
-export const addLeadingSlash = (path?: string): string =>
-  path ? (path.charAt(0) !== '/' ? '/' + path : path) : '';
+// export const addLeadingSlash = (path?: string): string => path ? (path.charAt(0) !== '/' ? '/' + path : path) : '';
 
-/**
- * Deprecated. Use the "addLeadingSlash" function instead.
- * @deprecated
- */
-export const validatePath = addLeadingSlash;
+export function addLeadingSlash(path?: string) {
+  if (path) return path.charAt(0) !== '/' ? '/' + path : path;
+
+  return '';
+}
 
 export const isFunction = (fn: any): boolean => typeof fn === 'function';
 export const isString = (fn: any): fn is string => typeof fn === 'string';
 export const isConstructor = (fn: any): boolean => fn === 'constructor';
-export const isNil = (obj: any): obj is null | undefined =>
-  isUndefined(obj) || obj === null;
+export const isNil = (obj: any): obj is null | undefined => isUndefined(obj) || obj === null;
 export const isEmpty = (array: any): boolean => !(array && array.length > 0);
 export const isSymbol = (fn: any): fn is symbol => typeof fn === 'symbol';
