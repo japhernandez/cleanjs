@@ -18,6 +18,10 @@ export abstract class AbstractHttpAdapter<
     throw new Error('Method not implemented.');
   }
 
+  public async init() {
+    throw new Error('Method not implemented.');
+  }
+
   public use(...args: any[]) {
     return this.instance.use(...args);
   }
