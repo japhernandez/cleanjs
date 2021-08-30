@@ -8,17 +8,14 @@ export abstract class AbstractHttpAdapter<
 > implements HttpServer<TRequest, TResponse> {
   protected httpServer: TServer;
 
-  constructor(protected readonly instance: any) {}
+  protected constructor(protected readonly instance: any) {}
+
   all(path: string, handler: RequestHandler<TRequest, TResponse>);
   all(handler: RequestHandler<TRequest, TResponse>);
   all(path: any, handler?: any) {
     throw new Error('Method not implemented.');
   }
   setBaseViewsDir?(path: string | string[]): this {
-    throw new Error('Method not implemented.');
-  }
-
-  public async init() {
     throw new Error('Method not implemented.');
   }
 
@@ -86,6 +83,7 @@ export abstract class AbstractHttpAdapter<
     return this.instance as T;
   }
 
+  abstract init();
   abstract close();
   abstract initHttpServer(options: NestApplicationOptions);
   abstract setViewEngine(engine: string);
