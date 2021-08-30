@@ -118,12 +118,9 @@ export class NestApplication
 
     await this.registerModules();
     await this.registerRouter();
-    // await this.callInitHook();
-    // await this.registerRouterHooks();
-    // await this.callBootstrapHook();
+    await this.registerRouterHooks();
 
     this.isInitialized = true;
-
 
     this.logger.log(MESSAGES.APPLICATION_READY);
     return this;
