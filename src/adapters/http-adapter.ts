@@ -19,6 +19,10 @@ export abstract class AbstractHttpAdapter<
     throw new Error('Method not implemented.');
   }
 
+  public async init() {
+
+  }
+
   public use(...args: any[]) {
     return this.instance.use(...args);
   }
@@ -83,7 +87,6 @@ export abstract class AbstractHttpAdapter<
     return this.instance as T;
   }
 
-  abstract init();
   abstract close();
   abstract initHttpServer(options: NestApplicationOptions);
   abstract setViewEngine(engine: string);
