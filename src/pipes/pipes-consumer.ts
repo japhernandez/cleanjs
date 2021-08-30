@@ -1,5 +1,5 @@
-import { ParamsTokenFactory } from './params-token-factory';
-import { RouteParamtypes } from '../enums';
+import {ParamsTokenFactory} from './params-token-factory';
+import {RouteParamtypes} from '../enums';
 import {ArgumentMetadata, PipeTransform} from "../contracts";
 
 export class PipesConsumer {
@@ -23,8 +23,7 @@ export class PipesConsumer {
   ) {
     return transforms.reduce(async (defferedValue, pipe) => {
       const val = await defferedValue;
-      const result = pipe.transform(val, { metatype, type, data });
-      return result;
+      return pipe.transform(val, {metatype, type, data});
     }, Promise.resolve(value));
   }
 }
