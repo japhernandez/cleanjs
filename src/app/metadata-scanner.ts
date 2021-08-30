@@ -25,12 +25,13 @@ export class MetadataScanner {
       return !isConstructor(prop) && isFunction(prototype[prop]);
     };
 
-    prototype = Reflect.getPrototypeOf(prototype);
-
     do {
       yield* iterate(Object.getOwnPropertyNames(prototype))
         .filter(isMethod)
         .toArray();
-    } while (prototype && prototype !== Object.prototype);
+    } while (
+      (prototype = Reflect.getPrototypeOf(prototype)) &&
+      prototype !== Object.prototype
+    );
   }
 }
