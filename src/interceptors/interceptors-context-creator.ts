@@ -1,12 +1,9 @@
 import { iterate } from 'iterare';
-import { ApplicationConfig } from '../app/application-config';
-import { ContextCreator } from '../helpers/context-creator';
-import { STATIC_CONTEXT } from '../ioc/constants';
-import { NestContainer } from '../ioc';
-import { InstanceWrapper } from '../ioc/instance-wrapper';
+import { ApplicationConfig } from '../app';
+import { ContextCreator } from '../helpers';
 import { Controller, NestInterceptor } from '../contracts';
-import { INTERCEPTORS_METADATA } from '../utils/constants';
-import { isEmpty, isFunction } from '../utils/shared.utils';
+import { INTERCEPTORS_METADATA, isEmpty, isFunction } from '../utils';
+import { STATIC_CONTEXT, NestContainer, InstanceWrapper } from '../ioc';
 
 export class InterceptorsContextCreator extends ContextCreator {
   private moduleContext: string;

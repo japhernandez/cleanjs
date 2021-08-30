@@ -22,7 +22,7 @@ export class ModuleCompiler {
     metatype: Type<any> | DynamicModule,
   ): {
     type: Type<any>;
-    dynamicMetadata?: Partial<DynamicModule> | undefined;
+    dynamicMetadata?: Partial<DynamicModule>;
   } {
     if (!this.isDynamicModule(metatype)) {
       return { type: metatype };

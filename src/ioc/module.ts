@@ -161,6 +161,9 @@ export class Module {
     injectable: Provider,
     host?: Type<T>,
   ) {
+
+    const {name} = host
+
     if (this.isCustomProvider(injectable)) {
       return this.addCustomProvider(injectable, this._injectables);
     }
@@ -177,9 +180,9 @@ export class Module {
       this._injectables.set(injectable.name, instanceWrapper);
     }
     if (host) {
-      const token = host && host.name;
-      const hostWrapper =
-        this._controllers.get(host && host.name) || this._providers.get(token);
+      // const token = host && host.name;
+      // const hostWrapper = this._controllers.get(host && host.name) || this._providers.get(token);
+      const hostWrapper = this._controllers.get(name) || this._providers.get(name);
       hostWrapper && hostWrapper.addEnhancerMetadata(instanceWrapper);
     }
   }

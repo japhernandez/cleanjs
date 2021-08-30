@@ -1,8 +1,7 @@
 import { iterate } from 'iterare';
 import { STATIC_CONTEXT } from './constants';
 import { Module } from './module';
-import { randomStringGenerator } from '../utils';
-import { isNil, isUndefined } from '../utils';
+import { randomStringGenerator, isNil, isUndefined  } from '../utils';
 import {ClassProvider, FactoryProvider, Provider, Scope, Type, ValueProvider} from "../contracts";
 
 export const INSTANCE_METADATA_SYMBOL = Symbol.for('instance_metadata:cache');
@@ -43,9 +42,7 @@ export class InstanceWrapper<T = any> {
   private readonly values = new WeakMap<ContextId, InstancePerContext<T>>();
   private readonly [INSTANCE_METADATA_SYMBOL]: InstanceMetadataStore = {};
   private readonly [INSTANCE_ID_SYMBOL]: string;
-  private transientMap?:
-    | Map<string, WeakMap<ContextId, InstancePerContext<T>>>
-    | undefined;
+  private transientMap?: Map<string, WeakMap<ContextId, InstancePerContext<T>>>;
   private isTreeStatic: boolean | undefined;
 
   constructor(

@@ -1,5 +1,4 @@
-import { InvalidClassScopeException } from '../exceptions';
-import { UnknownElementException } from '../exceptions';
+import { InvalidClassScopeException, UnknownElementException } from '../exceptions';
 import { getClassScope } from '../helpers';
 import { NestContainer } from './container';
 import { Injector } from './injector';
@@ -7,6 +6,8 @@ import { InstanceLinksHost } from './instance-links-host';
 import { ContextId, InstanceWrapper } from './instance-wrapper';
 import { Module } from './module';
 import {IntrospectionResult, Scope, Type} from "../contracts";
+
+type GetTypes = Type<any> | string | symbol
 
 export abstract class ModuleRef {
   private readonly injector = new Injector();
@@ -19,17 +20,19 @@ export abstract class ModuleRef {
     return this._instanceLinksHost;
   }
 
-  constructor(protected readonly container: NestContainer) {}
+  protected constructor(protected readonly container: NestContainer) {}
 
   public abstract get<TInput = any, TResult = TInput>(
-    typeOrToken: Type<TInput> | string | symbol,
+    typeOrToken: GetTypes,
     options?: { strict: boolean },
   ): TResult;
+
   public abstract resolve<TInput = any, TResult = TInput>(
-    typeOrToken: Type<TInput> | string | symbol,
+    typeOrToken: GetTypes,
     contextId?: ContextId,
     options?: { strict: boolean },
   ): Promise<TResult>;
+
   public abstract create<T = any>(type: Type<T>): Promise<T>;
 
   public introspect<T = any>(
@@ -51,7 +54,7 @@ export abstract class ModuleRef {
   }
 
   protected find<TInput = any, TResult = TInput>(
-    typeOrToken: Type<TInput> | string | symbol,
+    typeOrToken: GetTypes,
     contextModule?: Module,
   ): TResult {
     const moduleId = contextModule && contextModule.id;
@@ -69,7 +72,7 @@ export abstract class ModuleRef {
   }
 
   protected async resolvePerContext<TInput = any, TResult = TInput>(
-    typeOrToken: Type<TInput> | string | symbol,
+    typeOrToken: GetTypes,
     contextModule: Module,
     contextId: ContextId,
     options?: { strict: boolean },
