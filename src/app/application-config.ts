@@ -10,8 +10,6 @@ export class ApplicationConfig {
   private readonly globalRequestFilters: InstanceWrapper<ExceptionFilter>[] = [];
   private readonly globalRequestInterceptors: InstanceWrapper<NestInterceptor>[] = [];
 
-  constructor() {}
-
   public setGlobalPrefix(prefix: string) {
     this.globalPrefix = prefix;
   }
