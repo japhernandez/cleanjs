@@ -1,5 +1,5 @@
-import { ExternalExceptionFilter } from './external-exception-filter';
-import { isEmpty } from '../utils';
+import {ExternalExceptionFilter} from './external-exception-filter';
+import {isEmpty} from '../utils';
 import {ArgumentsHost, ExceptionFilterMetadata, Type} from "../contracts";
 import {InvalidExceptionFilterException} from "./invalid-exception-filter.exception";
 
@@ -28,14 +28,12 @@ export class ExternalExceptionsHandler extends ExternalExceptionFilter {
     if (isEmpty(this.filters)) {
       return null;
     }
-    const isInstanceOf = (metatype: Type<unknown>) =>
-      exception instanceof metatype;
+    const isInstanceOf = (metatype: Type<unknown>) => exception instanceof metatype;
 
     const filter = this.filters.find(({ exceptionMetatypes }) => {
-      const typeExists =
-        !exceptionMetatypes.length || exceptionMetatypes.some(isInstanceOf);
-      return typeExists;
+      return !exceptionMetatypes.length || exceptionMetatypes.some(isInstanceOf);
     });
+
     return filter ? filter.func(exception, host) : null;
   }
 }
