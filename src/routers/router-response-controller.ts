@@ -33,13 +33,13 @@ export class RouterResponseController {
 
     if (statusCode) return result.statusCode;
 
+    const url = result && result.url ? result.url : redirectResponse.url;
+    this.applicationRef.redirect(response, statusCode, url);
+
     if (redirectResponse.statusCode)
         return redirectResponse.statusCode
      else
-       HttpStatus.FOUND;
-
-    const url = result && result.url ? result.url : redirectResponse.url;
-    this.applicationRef.redirect(response, statusCode, url);
+       return HttpStatus.FOUND;
   }
 
   public async render<TInput = unknown, TResponse = unknown>(
