@@ -18,23 +18,20 @@ export class MetadataScanner {
 
   *getAllFilteredMethodNames(prototype: object): IterableIterator<string> {
 
-    console.log('prototype', prototype)
-
     const isMethod = (prop: string) => {
       const descriptor = Object.getOwnPropertyDescriptor(prototype, prop);
-      if (descriptor.set || descriptor.get) {
-        return false;
-      }
+      if (descriptor.set || descriptor.get) return false;
       return !isConstructor(prop) && isFunction(prototype[prop]);
     };
+
+    let type = Reflect.getPrototypeOf(prototype)
+
+    console.log('prototype', type)
 
     do {
       yield* iterate(Object.getOwnPropertyNames(prototype))
         .filter(isMethod)
         .toArray();
-    } while (
-      (prototype = Reflect.getPrototypeOf(prototype)) &&
-      prototype !== Object.prototype
-    );
+    } while (type && prototype !== Object.prototype);
   }
 }
