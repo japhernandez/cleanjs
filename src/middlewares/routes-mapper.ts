@@ -1,8 +1,8 @@
-import { PATH_METADATA } from '../utils';
 import {
   addLeadingSlash,
   isString,
   isUndefined,
+  PATH_METADATA
 } from '../utils';
 import { NestContainer } from '../ioc';
 import { MetadataScanner } from '../app';

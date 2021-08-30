@@ -8,7 +8,7 @@ import {
   SSE_METADATA,
   isEmpty, isString
 } from '../utils';
-import { RouteParamtypes } from '../enums';
+import { RouteParamtypes, RequestMethod } from '../enums';
 import {
   HandleResponseFn,
   HandlerMetadata,
@@ -28,7 +28,6 @@ import {
 } from './router-response-controller';
 import {ContextType, Controller, HttpServer, PipeTransform} from "../contracts";
 import {ParamData, RouteParamMetadata} from "../decorators";
-import {RequestMethod} from "../enums";
 
 
 export interface ParamProperties {
