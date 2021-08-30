@@ -18,9 +18,6 @@ export abstract class AbstractHttpAdapter<
     throw new Error('Method not implemented.');
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
-  public async init() {}
-
   public use(...args: any[]) {
     return this.instance.use(...args);
   }
@@ -74,7 +71,7 @@ export abstract class AbstractHttpAdapter<
   }
 
   public getHttpServer(): TServer {
-    return this.httpServer as TServer;
+    return this.httpServer;
   }
 
   public setHttpServer(httpServer: TServer) {
