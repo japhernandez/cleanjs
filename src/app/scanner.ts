@@ -60,14 +60,12 @@ export class DependenciesScanner {
     ctxRegistry: (ForwardReference | DynamicModule | Type<unknown>)[] = [],
   ): Promise<Module> {
     const moduleInstance = await this.insertModule(moduleDefinition, scope);
-    moduleDefinition =
-      moduleDefinition instanceof Promise
-        ? await moduleDefinition
-        : moduleDefinition;
+    moduleDefinition = moduleDefinition instanceof Promise ? await moduleDefinition : moduleDefinition;
+
     ctxRegistry.push(moduleDefinition);
 
     if (this.isForwardReference(moduleDefinition)) {
-      moduleDefinition = (moduleDefinition as ForwardReference).forwardRef();
+      moduleDefinition = moduleDefinition.forwardRef();
     }
     const modules = !this.isDynamicModule(
       moduleDefinition as Type<any> | DynamicModule,
