@@ -1,6 +1,5 @@
-import { SCOPE_OPTIONS_METADATA } from '../utils/constants';
-import { NestContainer } from '../ioc';
-import { InstanceWrapper } from '../ioc/instance-wrapper';
+import { SCOPE_OPTIONS_METADATA } from '../utils';
+import { NestContainer, InstanceWrapper } from '../ioc';
 import {MiddlewareConfiguration, Scope, Type} from "../contracts";
 
 export class MiddlewareContainer {
@@ -46,7 +45,7 @@ export class MiddlewareContainer {
       );
     };
     configurations.forEach(config => {
-      [].concat(config.middleware).map(insertMiddleware);
+      [].concat(config.middleware).forEach(insertMiddleware);
       targetConfig.add(config);
     });
   }
