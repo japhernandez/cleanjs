@@ -125,10 +125,7 @@ Potential causes:
 Scope [${stringifyScope(scope)}]`;
 };
 
-export const UNKNOWN_EXPORT_MESSAGE = (
-  token: string | symbol = 'item',
-  module: string,
-) => {
+export const UNKNOWN_EXPORT_MESSAGE = (module: string, token: string | symbol = 'item') => {
   token = isSymbol(token) ? token.toString() : token;
 
   return `Nest cannot export a provider/module that is not a part of the currently processed module (${module}). Please verify whether the exported ${token} is available in this particular context.
