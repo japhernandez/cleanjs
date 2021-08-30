@@ -6,9 +6,9 @@ export type RouterProxyCallback = <TRequest, TResponse>(req?: TRequest, res?: TR
 export class RouterProxy {
 
   public createProxy(targetCallback: RouterProxyCallback, exceptionsHandler: ExceptionsHandler) {
-    return async <TRequest, TResponse>(req: TRequest, res: TResponse, next: () => void) => {
+    return <TRequest, TResponse>(req: TRequest, res: TResponse, next: () => void) => {
       try {
-        await targetCallback(req, res, next);
+        targetCallback(req, res, next);
       } catch (e) {
         const host = new ExecutionContextHost([req, res, next]);
         exceptionsHandler.next(e, host);
@@ -20,12 +20,12 @@ export class RouterProxy {
     targetCallback: <TError, TRequest, TResponse>(err: TError, req: TRequest, res: TResponse, next: () => void) => void,
     exceptionsHandler: ExceptionsHandler,
   ) {
-    return async <TError, TRequest, TResponse>(err: TError, req: TRequest, res: TResponse, next: () => void) => {
+    return <TError, TRequest, TResponse>(err: TError, req: TRequest, res: TResponse, next: () => void) => {
       try {
-        await targetCallback(err, req, res, next);
+        targetCallback(err, req, res, next);
       } catch (e) {
         const host = new ExecutionContextHost([req, res, next]);
-       await exceptionsHandler.next(e, host);
+        exceptionsHandler.next(e, host);
       }
     };
   }
