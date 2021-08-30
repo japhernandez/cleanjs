@@ -1,4 +1,5 @@
-import { ContextId } from '../ioc/instance-wrapper';
+import randomNumber from 'random-number'
+import { ContextId } from '../ioc';
 import { REQUEST_CONTEXT_ID } from '../routers/request/request-constants';
 
 export function createContextId(): ContextId {
@@ -10,7 +11,7 @@ export function createContextId(): ContextId {
    * associate asynchronous context with its internal map values using object reference.
    * Object is automatically removed once request has been processed (closure).
    */
-  return { id: Math.random() };
+  return { id: randomNumber() };
 }
 
 export class ContextIdFactory {
