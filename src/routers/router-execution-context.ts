@@ -13,7 +13,6 @@ import {
   HandleResponseFn,
   HandlerMetadata,
   HandlerMetadataStorage,
-  HandlerResponseBasicFn,
   ExecutionContextHost,
   ContextUtils
 } from '../helpers';

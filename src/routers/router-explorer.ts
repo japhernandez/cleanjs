@@ -11,12 +11,11 @@ import {ContextIdFactory, ExecutionContextHost, ROUTE_MAPPED_MESSAGE, RouterMeth
 import { NestContainer, STATIC_CONTEXT, Injector, InstanceWrapper, ContextId, Module } from '../ioc';
 import { InterceptorsConsumer, InterceptorsContextCreator } from '../interceptors';
 import { PipesConsumer, PipesContextCreator } from '../pipes';
-import { ExceptionsFilter } from '../contracts';
 import { REQUEST_CONTEXT_ID } from './request/request-constants';
 import { RouteParamsFactory } from './route-params-factory';
 import { RouterExecutionContext } from './router-execution-context';
 import { RouterProxy, RouterProxyCallback } from './router-proxy';
-import {Controller, HttpServer, Type} from "../contracts";
+import {Controller, HttpServer, Type, ExceptionsFilter} from "../contracts";
 import {RequestMethod} from "../enums";
 import {Logger} from "../services";
 
@@ -200,24 +199,24 @@ export class RouterExplorer {
     });
   }
 
-  private applyHostFilter(host: string | string[], handler: Function) {
-    if (!host) {
+  private applyHostFilter(value: string | string[], handler: Function) {
+    if (!value) {
       return handler;
     }
 
     const httpAdapterRef = this.container.getHttpAdapterRef();
-    const hosts = Array.isArray(host) ? host : [host];
+    const hosts = Array.isArray(value) ? value : [value];
     const hostRegExps = hosts.map((host: string) => {
       const keys = [];
       const regexp = pathToRegexp(host, keys);
       return { regexp, keys };
     });
 
-    const unsupportedFilteringErrorMessage = Array.isArray(host)
-      ? `HTTP adapter does not support filtering on hosts: ["${host.join(
+    const unsupportedFilteringErrorMessage = Array.isArray(value)
+      ? `HTTP adapter does not support filtering on hosts: ["${value.join(
           '", "',
         )}"]`
-      : `HTTP adapter does not support filtering on host: "${host}"`;
+      : `HTTP adapter does not support filtering on host: "${value}"`;
 
     return <TRequest extends Record<string, any> = any, TResponse = any>(
       req: TRequest,
