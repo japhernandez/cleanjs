@@ -20,20 +20,14 @@ export class MetadataScanner {
 
         const isMethod = (prop: string) => {
             const descriptor = Object.getOwnPropertyDescriptor(prototype, prop);
-            if (descriptor.set || descriptor.get) {
-                return false;
-            }
+            if (descriptor.set || descriptor.get) return false;
             return !isConstructor(prop) && isFunction(prototype[prop]);
         };
-
-        console.log('prototype',)
-
-        prototype = Reflect.getPrototypeOf(prototype)
 
         do {
             yield* iterate(Object.getOwnPropertyNames(prototype))
                 .filter(isMethod)
                 .toArray();
-        } while ((prototype) && prototype !== Object.prototype);
+        } while ((prototype = Reflect.getPrototypeOf(prototype)) && prototype !== Object.prototype);
     }
 }
