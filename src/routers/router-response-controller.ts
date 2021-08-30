@@ -30,9 +30,12 @@ export class RouterResponseController {
   ) {
     const result = await this.transformToResult(resultOrDeferred);
     const statusCode = result && result.statusCode;
-    if (statusCode) return result.statusCode;
 
-    redirectResponse.statusCode ? redirectResponse.statusCode : HttpStatus.FOUND;
+    if (statusCode) {
+      return result.statusCode;
+    } else {
+      redirectResponse.statusCode ? redirectResponse.statusCode : HttpStatus.FOUND;
+    }
 
     const url = result && result.url ? result.url : redirectResponse.url;
     this.applicationRef.redirect(response, statusCode, url);
