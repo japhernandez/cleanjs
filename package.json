@@ -1,8 +1,7 @@
 {
   "name": "clean-typescript",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "description": "Plugin for API Rest Full development, based on Clean Architecture, IoC and Dependency Injection.",
-  "main": "index.js",
   "type": "commonjs",
   "types": "./dist/index.d.ts",
   "scripts": {
