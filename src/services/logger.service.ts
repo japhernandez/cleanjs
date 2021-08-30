@@ -68,7 +68,7 @@ export class Logger implements LoggerService {
       this.logLevels = logger;
       return;
     }
-    this.instance = isObject(logger) ? (logger as LoggerService) : undefined;
+    this.instance = isObject(logger) ? logger : undefined;
   }
 
   static log(message: any, context = '', isTimeDiffEnabled = true) {
