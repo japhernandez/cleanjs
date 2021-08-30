@@ -4,6 +4,8 @@ import {InvalidClassScopeException, UnknownElementException, UnknownModuleExcept
 import {createContextId} from "../helpers";
 import {Logger, LoggerService, LogLevel} from "../services";
 
+type GetType = string | symbol
+
 export class NestApplicationContext implements INestApplicationContext {
   protected isInitialized = false;
   protected readonly injector = new Injector();
@@ -49,8 +51,9 @@ export class NestApplicationContext implements INestApplicationContext {
     return new NestApplicationContext(this.container, scope, selectedModule);
   }
 
+
   public get<TInput = any, TResult = TInput>(
-    typeOrToken: Type<TInput> | Abstract<TInput> | string | symbol,
+    typeOrToken: Type<TInput> | Abstract<TInput> | GetType,
     options: { strict: boolean } = { strict: false },
   ): TResult {
 
@@ -60,7 +63,7 @@ export class NestApplicationContext implements INestApplicationContext {
   }
 
   public resolve<TInput = any, TResult = TInput>(
-    typeOrToken: Type<TInput> | Abstract<TInput> | string | symbol,
+    typeOrToken: Type<TInput> | Abstract<TInput> | GetType,
     contextId = createContextId(),
     options: { strict: boolean } = { strict: false },
   ): Promise<TResult> {
@@ -98,7 +101,7 @@ export class NestApplicationContext implements INestApplicationContext {
   }
 
   protected find<TInput = any, TResult = TInput>(
-    typeOrToken: Type<TInput> | Abstract<TInput> | string | symbol,
+    typeOrToken: Type<TInput> | Abstract<TInput> | GetType,
     contextModule?: Module,
   ): TResult {
     const moduleId = contextModule && contextModule.id;
@@ -116,7 +119,7 @@ export class NestApplicationContext implements INestApplicationContext {
   }
 
   protected async resolvePerContext<TInput = any, TResult = TInput>(
-    typeOrToken: Type<TInput> | Abstract<TInput> | string | symbol,
+    typeOrToken: Type<TInput> | Abstract<TInput> | GetType,
     contextModule: Module,
     contextId: ContextId,
     options?: { strict: boolean },
