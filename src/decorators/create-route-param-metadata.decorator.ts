@@ -1,17 +1,9 @@
 import { v4 as uuid } from 'uuid';
-import { ROUTE_ARGS_METADATA } from '../utils/constants';
-import {PipeTransform, Type} from '../contracts';
-import { CustomParamFactory } from '../contracts';
-import { assignCustomParameterMetadata } from '../utils/assign-custom-metadata.util';
-import { isFunction, isNil } from '../utils/shared.utils';
+import {PipeTransform, Type, CustomParamFactory} from '../contracts';
+import { ROUTE_ARGS_METADATA, assignCustomParameterMetadata, isFunction, isNil } from '../utils';
 
 export type ParamDecoratorEnhancer = ParameterDecorator;
 
-/**
- * Defines HTTP route param decorator
- *
- * @param factory
- */
 export function createParamDecorator<
   FactoryData = any,
   FactoryInput = any,
