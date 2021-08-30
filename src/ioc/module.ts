@@ -18,7 +18,8 @@ import {
 } from '../contracts';
 import { isFunction, isNil, isString, isSymbol, isUndefined, randomStringGenerator } from '../utils';
 
-type GetTypes = ClassProvider | FactoryProvider | ValueProvider | ExistingProvider;
+type GetProvider = ClassProvider | FactoryProvider | ValueProvider | ExistingProvider;
+type GetTypes = string | symbol | Type<any>
 
 interface ProviderName {
   name?: string | symbol;
@@ -204,7 +205,7 @@ export class Module {
 
   public isCustomProvider(
     provider: Provider,
-  ): provider is GetTypes {
+  ): provider is GetProvider {
     return !isNil(
       (provider as
         | ClassProvider
@@ -357,7 +358,7 @@ export class Module {
     addExportedUnit(provider.name);
   }
 
-  public addCustomExportedProvider(provider: GetTypes) {
+  public addCustomExportedProvider(provider: GetProvider) {
     const provide = provider.provide;
     if (isString(provide) || isSymbol(provide)) {
       return this._exports.add(this.validateExportedProvider(provide));
@@ -413,7 +414,7 @@ export class Module {
     this._imports.add(module);
   }
 
-  public replace(toReplace: string | symbol | Type<any>, options: any) {
+  public replace(toReplace: GetTypes, options: any) {
     if (options.isProvider && this.hasProvider(toReplace)) {
       const name = this.getProviderStaticToken(toReplace);
       const originalProvider = this._providers.get(name);
@@ -430,12 +431,12 @@ export class Module {
     }
   }
 
-  public hasProvider(token: string | symbol | Type<any>): boolean {
+  public hasProvider(token: GetTypes): boolean {
     const name = this.getProviderStaticToken(token);
     return this._providers.has(name);
   }
 
-  public hasInjectable(token: string | symbol | Type<any>): boolean {
+  public hasInjectable(token: GetTypes): boolean {
     const name = this.getProviderStaticToken(token);
     return this._injectables.has(name);
   }
@@ -464,7 +465,7 @@ export class Module {
       }
 
       public get<TInput = any, TResult = TInput>(
-        typeOrToken: Type<TInput> | string | symbol,
+        typeOrToken: GetTypes,
         options: { strict: boolean } = { strict: true },
       ): TResult {
         return !(options && options.strict)
@@ -473,7 +474,7 @@ export class Module {
       }
 
       public resolve<TInput = any, TResult = TInput>(
-        typeOrToken: Type<TInput> | string | symbol,
+        typeOrToken: GetTypes,
         contextId = createContextId(),
         options: { strict: boolean } = { strict: true },
       ): Promise<TResult> {
