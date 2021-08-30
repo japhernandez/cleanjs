@@ -181,8 +181,6 @@ export class NestFactoryStatic {
       get: (receiver: Record<string, any>, prop: string) => {
         const mapToProxy = (result: unknown) => {
 
-          // return result instanceof Promise ? result.then(mapToProxy) : result instanceof NestApplication ? proxy : result;
-
           if (result instanceof Promise) return result.then(mapToProxy)
 
           return result instanceof NestApplication ? proxy : result;
