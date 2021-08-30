@@ -16,6 +16,10 @@ export class ExpressAdapter extends AbstractHttpAdapter {
     super(instance || express());
   }
 
+  public async init() {
+    throw new Error('Method not implemented.');
+  }
+
   public reply(response: any, body: any, statusCode?: number) {
     if (statusCode) {
       response.status(statusCode);
@@ -50,8 +54,6 @@ export class ExpressAdapter extends AbstractHttpAdapter {
     return response.set(name, value);
   }
 
-  // public listen(port: string | number, callback?: () => void);
-  // public listen(port: string | number, hostname: string, callback?: () => void);
   public listen(port: any, ...args: any[]) {
     return this.httpServer.listen(port, ...args);
   }
