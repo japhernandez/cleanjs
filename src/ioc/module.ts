@@ -389,7 +389,7 @@ export class Module {
 
     if (!importsNames.includes(token as string)) {
       const { name } = this.metatype;
-      throw new UnknownExportException(token, name);
+      throw new UnknownExportException(name, token);
     }
     return token;
   }

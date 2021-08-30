@@ -1,21 +1,12 @@
 import {ExternalExceptionFilterContext} from '../exceptions';
-import {STATIC_CONTEXT} from '../ioc';
-import {NestContainer} from '../ioc';
-import {ContextId} from '../ioc';
-import {Module} from '../ioc';
-import {ModulesContainer} from '../ioc';
-import {InterceptorsConsumer} from '../interceptors';
-import {InterceptorsContextCreator} from '../interceptors';
-import {PipesConsumer} from '../pipes';
-import {PipesContextCreator} from '../pipes';
+import {STATIC_CONTEXT, NestContainer, ContextId, Module, ModulesContainer} from '../ioc';
+import {InterceptorsConsumer, InterceptorsContextCreator} from '../interceptors';
+import {PipesConsumer, PipesContextCreator} from '../pipes';
 import {ContextUtils, ParamPropertiesContext} from './context-utils';
 import {ExternalErrorProxy} from './external-proxy';
 import {HandlerMetadataStorage} from './handler-metadata-storage';
-import {ExternalHandlerMetadata} from '../contracts';
-import {ParamsMetadata} from '../contracts';
-import {CUSTOM_ROUTE_AGRS_METADATA} from '../utils';
-import {ContextType, Controller, PipeTransform} from '../contracts';
-import {isEmpty, isFunction} from '../utils';
+import {CUSTOM_ROUTE_AGRS_METADATA, isEmpty, isFunction} from '../utils';
+import {ContextType, Controller, PipeTransform, ExternalHandlerMetadata, ParamsMetadata} from '../contracts';
 import {ParamData} from "../decorators";
 
 export interface ParamsFactory {
@@ -218,7 +209,7 @@ export class ExternalContextCreator {
     if (!className) {
       return defaultModuleName;
     }
-    // @ts-ignore
+
     for (const [key, module] of [...this.modulesContainer.entries()]) {
       if (this.getProviderByClassName(module, className)) {
         return key;
@@ -229,7 +220,7 @@ export class ExternalContextCreator {
 
   public getProviderByClassName(module: Module, className: string): boolean {
     const { providers } = module;
-    // @ts-ignore
+
     return [...providers.keys()].some(
         provider => provider === className,
     );
