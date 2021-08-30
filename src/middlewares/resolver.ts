@@ -1,6 +1,4 @@
-import { Injector } from '../ioc/injector';
-import { InstanceWrapper } from '../ioc/instance-wrapper';
-import { Module } from '../ioc/module';
+import { Injector, InstanceWrapper, Module } from '../ioc';
 import { MiddlewareContainer } from './container';
 
 export class MiddlewareResolver {

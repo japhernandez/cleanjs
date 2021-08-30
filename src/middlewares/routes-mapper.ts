@@ -1,4 +1,4 @@
-import { PATH_METADATA } from '../utils/constants';
+import { PATH_METADATA } from '../utils';
 import {
   addLeadingSlash,
   isString,

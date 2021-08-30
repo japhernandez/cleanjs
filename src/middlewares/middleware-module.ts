@@ -1,20 +1,13 @@
 import {
   addLeadingSlash,
   isUndefined,
-} from '../utils/shared.utils';
-import { ApplicationConfig } from '../app/application-config';
-import { InvalidMiddlewareException } from '../exceptions/invalid-middleware.exception';
-import { RuntimeException } from '../exceptions/runtime.exception';
-import { ContextIdFactory } from '../helpers/context-id-factory';
-import { ExecutionContextHost } from '../helpers/execution-context-host';
-import { STATIC_CONTEXT } from '../ioc/constants';
-import { NestContainer } from '../ioc/container';
-import { Injector } from '../ioc/injector';
-import { InstanceWrapper } from '../ioc/instance-wrapper';
-import { Module } from '../ioc/module';
+} from '../utils';
+import { ApplicationConfig } from '../app';
+import { InvalidMiddlewareException, RuntimeException } from '../exceptions';
+import { ContextIdFactory, ExecutionContextHost } from '../helpers';
+import { STATIC_CONTEXT, NestContainer, Injector, InstanceWrapper, Module } from '../ioc';
 import { REQUEST_CONTEXT_ID } from '../routers/request/request-constants';
-import { RouterExceptionFilters } from '../routers';
-import { RouterProxy } from '../routers';
+import { RouterExceptionFilters, RouterProxy } from '../routers';
 import { MiddlewareBuilder } from './builder';
 import { MiddlewareContainer } from './container';
 import { MiddlewareResolver } from './resolver';
@@ -68,8 +61,6 @@ export class MiddlewareModule {
       string,
       Module,
     ]) => {
-      console.log('instance', module.instance)
-
       const instance = module.instance;
       await this.loadConfiguration(middlewareContainer, instance, name);
       await this.resolver.resolveInstances(module, name);
@@ -82,8 +73,6 @@ export class MiddlewareModule {
     instance: NestModule,
     moduleKey: string,
   ) {
-    console.log('configure', instance)
-
     if (!instance.configure) {
       return;
     }

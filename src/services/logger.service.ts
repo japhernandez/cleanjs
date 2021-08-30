@@ -1,7 +1,5 @@
-import { Injectable } from '../decorators/injectable.decorator';
-import { Optional } from '../decorators/optional.decorator';
-import { clc, yellow } from '../utils/cli-colors.util';
-import { isObject, isPlainObject } from '../utils/shared.utils';
+import { Injectable, Optional } from '../decorators';
+import { clc, yellow, isObject, isPlainObject } from '../utils';
 
 declare const process: any;
 

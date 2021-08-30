@@ -1,7 +1,5 @@
 import { iterate } from 'iterare';
-import { RuntimeException } from '../exceptions/runtime.exception';
-import { UndefinedDependencyException } from '../exceptions/undefined-dependency.exception';
-import { UnknownDependenciesException } from '../exceptions/unknown-dependencies.exception';
+import { RuntimeException, UndefinedDependencyException, UnknownDependenciesException } from '../exceptions';
 import { STATIC_CONTEXT } from './constants';
 import { INQUIRER } from './inquirer';
 import {
@@ -11,14 +9,14 @@ import {
   PropertyMetadata,
 } from './instance-wrapper';
 import { Module } from './module';
-import { isFunction, isNil, isObject, isString, isUndefined } from '../utils/shared.utils';
 import {Controller, InjectableInterface, Type} from '../contracts';
 import {
   OPTIONAL_DEPS_METADATA,
   OPTIONAL_PROPERTY_DEPS_METADATA,
   PARAMTYPES_METADATA,
   PROPERTY_DEPS_METADATA, SELF_DECLARED_DEPS_METADATA,
-} from '../utils/constants';
+  isFunction, isNil, isObject, isString, isUndefined
+} from '../utils';
 
 /**
  * The type of an injectable dependency

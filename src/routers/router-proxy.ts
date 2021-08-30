@@ -1,5 +1,5 @@
-import { ExceptionsHandler } from '../exceptions/exceptions-handler';
-import { ExecutionContextHost } from '../helpers/execution-context-host';
+import { ExceptionsHandler } from '../exceptions';
+import { ExecutionContextHost } from '../helpers';
 
 export type RouterProxyCallback = <TRequest, TResponse>(req?: TRequest, res?: TResponse, next?: () => void) => void;
 

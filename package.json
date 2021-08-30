@@ -1,6 +1,6 @@
 {
   "name": "clean-typescript",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Plugin for API Rest Full development, based on Clean Architecture, IoC and Dependency Injection.",
   "main": "index.js",
   "scripts": {
@@ -27,8 +27,6 @@
   },
   "homepage": "https://github.com/john-piedrahita/cleanjs#readme",
   "dependencies": {
-    "@types/random-number": "0.0.1",
-    "body-parser": "^1.19.0",
     "cors": "^2.8.5",
     "express": "^4.17.1",
     "fast-safe-stringify": "^2.0.8",
@@ -41,10 +39,10 @@
     "uuid": "^8.3.2"
   },
   "devDependencies": {
-    "@types/body-parser": "^1.19.0",
     "@types/cors": "^2.8.10",
     "@types/express": "^4.17.12",
     "@types/node": "^15.12.5",
+    "@types/random-number": "0.0.1",
     "@types/reflect-metadata": "^0.1.0",
     "@types/uuid": "^8.3.1",
     "@typescript-eslint/eslint-plugin": "^4.28.1",

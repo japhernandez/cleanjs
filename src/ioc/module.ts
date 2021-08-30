@@ -1,15 +1,11 @@
 import { iterate } from 'iterare';
-import { ApplicationConfig } from '../app/application-config';
-import { InvalidClassException } from '../exceptions/invalid-class.exception';
-import { RuntimeException } from '../exceptions/runtime.exception';
-import { UnknownExportException } from '../exceptions/unknown-export.exception';
-import { createContextId } from '../helpers';
-import { getClassScope } from '../helpers/get-class-scope';
+import { ApplicationConfig } from '../app';
+import { InvalidClassException, RuntimeException, UnknownExportException } from '../exceptions';
+import { createContextId, getClassScope } from '../helpers';
 import { CONTROLLER_ID_KEY } from './constants';
 import { NestContainer } from './container';
 import { InstanceWrapper } from './instance-wrapper';
 import { ModuleRef } from './module-ref';
-import { randomStringGenerator } from '../utils/random-string-generator.util';
 import {
   Abstract,
   ClassProvider,
@@ -20,7 +16,7 @@ import {
   Provider,
   Type, ValueProvider,
 } from '../contracts';
-import { isFunction, isNil, isString, isSymbol, isUndefined } from '../utils/shared.utils';
+import { isFunction, isNil, isString, isSymbol, isUndefined, randomStringGenerator } from '../utils';
 
 interface ProviderName {
   name?: string | symbol;
@@ -137,7 +133,6 @@ export class Module {
   }
 
   public addModuleAsProvider() {
-    console.log('-----------9---------------')
     this._providers.set(
       this._metatype.name,
       new InstanceWrapper({

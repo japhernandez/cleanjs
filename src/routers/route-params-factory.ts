@@ -1,5 +1,5 @@
-import { RouteParamtypes } from '../enums/route-paramtypes.enum';
-import { IRouteParamsFactory } from '../contracts/route-params-factory.interface';
+import { RouteParamtypes } from '../enums';
+import { IRouteParamsFactory } from '../contracts';
 
 export class RouteParamsFactory implements IRouteParamsFactory {
   public exchangeKeyForValue<
