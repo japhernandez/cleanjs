@@ -4,7 +4,7 @@ import {InvalidClassScopeException, UnknownElementException, UnknownModuleExcept
 import {createContextId} from "../helpers";
 import {Logger, LoggerService, LogLevel} from "../services";
 
-type GetType = string | symbol
+type GetType = Type<any> | Abstract<any> | string | symbol
 
 export class NestApplicationContext implements INestApplicationContext {
   protected isInitialized = false;
@@ -53,17 +53,15 @@ export class NestApplicationContext implements INestApplicationContext {
 
 
   public get<TInput = any, TResult = TInput>(
-    typeOrToken: Type<TInput> | Abstract<TInput> | GetType,
-    options: { strict: boolean } = { strict: false },
+    typeOrToken: GetType, options: { strict: boolean } = { strict: false }
   ): TResult {
-
     return !(options && options.strict)
       ? this.find<TInput, TResult>(typeOrToken)
       : this.find<TInput, TResult>(typeOrToken, this.contextModule);
   }
 
   public resolve<TInput = any, TResult = TInput>(
-    typeOrToken: Type<TInput> | Abstract<TInput> | GetType,
+    typeOrToken: GetType,
     contextId = createContextId(),
     options: { strict: boolean } = { strict: false },
   ): Promise<TResult> {
@@ -100,10 +98,7 @@ export class NestApplicationContext implements INestApplicationContext {
     return Promise.resolve();
   }
 
-  protected find<TInput = any, TResult = TInput>(
-    typeOrToken: Type<TInput> | Abstract<TInput> | GetType,
-    contextModule?: Module,
-  ): TResult {
+  protected find<TInput = any, TResult = TInput>(typeOrToken: GetType, contextModule?: Module): TResult {
     const moduleId = contextModule && contextModule.id;
     const { wrapperRef } = this.instanceLinksHost.get<TResult>(
       typeOrToken,
@@ -119,7 +114,7 @@ export class NestApplicationContext implements INestApplicationContext {
   }
 
   protected async resolvePerContext<TInput = any, TResult = TInput>(
-    typeOrToken: Type<TInput> | Abstract<TInput> | GetType,
+    typeOrToken:  GetType,
     contextModule: Module,
     contextId: ContextId,
     options?: { strict: boolean },
