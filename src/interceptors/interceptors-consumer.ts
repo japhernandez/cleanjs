@@ -1,15 +1,17 @@
-import { defer, from as fromPromise, Observable } from 'rxjs';
 import { mergeAll, switchMap } from 'rxjs/operators';
-import { ExecutionContextHost } from '../helpers/execution-context-host';
+import { defer, from as fromPromise, Observable } from 'rxjs';
+
+import { isEmpty } from '../utils';
+import { ExecutionContextHost } from '../helpers';
 import {CallHandler, ContextType, Controller, NestInterceptor, Type} from '../contracts';
-import { isEmpty } from '../utils/shared.utils';
 
 export class InterceptorsConsumer {
+
   public async intercept<TContext extends string = ContextType>(
     interceptors: NestInterceptor[],
     args: unknown[],
     instance: Controller,
-    callback: (...args: unknown[]) => unknown,
+    callback: () => unknown,
     next: () => Promise<unknown>,
     type?: TContext,
   ): Promise<unknown> {
@@ -35,7 +37,7 @@ export class InterceptorsConsumer {
   public createContext(
     args: unknown[],
     instance: Controller,
-    callback: (...args: unknown[]) => unknown,
+    callback: () => unknown,
   ): ExecutionContextHost {
     return new ExecutionContextHost(
       args,
