@@ -292,7 +292,7 @@ export class RouterExplorer {
           collection,
           contextId,
         );
-        await this.createCallbackProxy(
+        this.createCallbackProxy(
           contextInstance,
           contextInstance[methodName],
           methodName,
