@@ -16,10 +16,6 @@ export class ExpressAdapter extends AbstractHttpAdapter {
     super(instance || express());
   }
 
-  public async init() {
-    throw new Error('Method not implemented.');
-  }
-
   public reply(response: any, body: any, statusCode?: number) {
     if (statusCode) {
       response.status(statusCode);

@@ -83,7 +83,6 @@ export abstract class AbstractHttpAdapter<
     return this.instance as T;
   }
 
-  abstract init();
   abstract close();
   abstract initHttpServer(options: NestApplicationOptions);
   abstract setViewEngine(engine: string);
