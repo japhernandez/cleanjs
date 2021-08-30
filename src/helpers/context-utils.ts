@@ -1,8 +1,7 @@
-import { ExecutionContextHost } from './execution-context-host';
-import {ContextType, Controller, PipeTransform, Type} from '../contracts';
-import { PARAMTYPES_METADATA, RESPONSE_PASSTHROUGH_METADATA } from '../utils';
-import { isFunction } from '../utils';
 import {ParamData} from "../decorators";
+import {ExecutionContextHost} from './execution-context-host';
+import {ContextType, Controller, PipeTransform, Type} from '../contracts';
+import {isFunction, PARAMTYPES_METADATA, RESPONSE_PASSTHROUGH_METADATA} from '../utils';
 
 export interface ParamPropertiesContext<T = any, IExtractor extends Function = any> {
   index: number;
@@ -78,15 +77,14 @@ export class ContextUtils {
     instance?: object,
     callback?: Function,
   ): (args: unknown[]) => ExecutionContextHost {
-    const contextFactory = (args: unknown[]) => {
+    return (args: unknown[]) => {
       const ctx = new ExecutionContextHost(
-        args,
-        instance && (instance.constructor as Type<unknown>),
-        callback,
+          args,
+          instance && (instance.constructor as Type<unknown>),
+          callback,
       );
       ctx.setType(contextType);
       return ctx;
     };
-    return contextFactory;
   }
 }
