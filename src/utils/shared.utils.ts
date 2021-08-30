@@ -23,8 +23,6 @@ export const isPlainObject = (fn: any): fn is object => {
   );
 };
 
-// export const addLeadingSlash = (path?: string): string => path ? (path.charAt(0) !== '/' ? '/' + path : path) : '';
-
 export function addLeadingSlash(path?: string) {
   if (path) return path.charAt(0) !== '/' ? '/' + path : path;
 
