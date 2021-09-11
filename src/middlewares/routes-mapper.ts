@@ -5,7 +5,7 @@ import {
   PATH_METADATA
 } from '../utils';
 import {RequestMethod} from "../enums";
-import { NestContainer } from '../ioc';
+import { CleanContainer } from '../ioc';
 import { MetadataScanner } from '../app';
 import { RouterExplorer } from '../routers';
 import {IRouteInfo, Type} from "../contracts";
@@ -14,7 +14,7 @@ import {IRouteInfo, Type} from "../contracts";
 export class RoutesMapper {
   private readonly routerExplorer: RouterExplorer;
 
-  constructor(container: NestContainer) {
+  constructor(container: CleanContainer) {
     this.routerExplorer = new RouterExplorer(new MetadataScanner(), container);
   }
 

@@ -1,5 +1,5 @@
 import {ExternalExceptionFilterContext} from '../exceptions';
-import {STATIC_CONTEXT, NestContainer, IContextId, Module, ModulesContainer} from '../ioc';
+import {STATIC_CONTEXT, CleanContainer, IContextId, Module, ModulesContainer} from '../ioc';
 import {InterceptorsConsumer, InterceptorsContextCreator} from '../interceptors';
 import {HandlersConsumer, HandlersContextCreator} from '../handlers';
 import {ContextUtils, IParamPropertiesContext} from './context-utils';
@@ -28,7 +28,7 @@ export class ExternalContextCreator {
   private readonly contextUtils = new ContextUtils();
   private readonly externalErrorProxy = new ExternalErrorProxy();
   private readonly handlerMetadataStorage = new HandlerMetadataStorage<IExternalHandlerMetadata>();
-  private container: NestContainer;
+  private container: CleanContainer;
 
   constructor(
     private readonly interceptorsContextCreator: InterceptorsContextCreator,
@@ -39,7 +39,7 @@ export class ExternalContextCreator {
     private readonly filtersContextCreator: ExternalExceptionFilterContext,
   ) {}
 
-  static fromContainer(container: NestContainer): ExternalContextCreator {
+  static fromContainer(container: CleanContainer): ExternalContextCreator {
     const interceptorsContextCreator = new InterceptorsContextCreator(container, container.applicationConfig);
     const interceptorsConsumer = new InterceptorsConsumer();
 

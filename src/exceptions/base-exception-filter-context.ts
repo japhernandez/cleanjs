@@ -1,13 +1,13 @@
 import { iterate } from 'iterare';
 import { ContextCreator } from '../helpers';
 import {IExceptionFilter, Type} from "../contracts";
-import { STATIC_CONTEXT, NestContainer, InstanceWrapper } from '../ioc';
+import { STATIC_CONTEXT, CleanContainer, InstanceWrapper } from '../ioc';
 import { isEmpty, isFunction, FILTER_CATCH_EXCEPTIONS } from '../utils';
 
 export class BaseExceptionFilterContext extends ContextCreator {
   protected moduleContext: string;
 
-  constructor(private readonly container: NestContainer) {
+  constructor(private readonly container: CleanContainer) {
     super();
   }
 

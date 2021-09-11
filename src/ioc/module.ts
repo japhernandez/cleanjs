@@ -11,7 +11,7 @@ import {
 import { iterate } from 'iterare';
 import { ModuleRef } from './module-ref';
 import { ApplicationConfig } from '../app';
-import { NestContainer } from './container';
+import { CleanContainer } from './container';
 import { CONTROLLER_ID_KEY } from './constants';
 import { InstanceWrapper } from './instance-wrapper';
 import { createContextId, getClassScope } from '../helpers';
@@ -37,7 +37,7 @@ export class Module {
 
   constructor(
     private readonly _metaType: Type<any>,
-    private readonly container: NestContainer,
+    private readonly container: CleanContainer,
   ) {
     this.addCoreProviders();
     this._id = randomStringGenerator();

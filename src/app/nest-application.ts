@@ -1,6 +1,6 @@
 import {iterate} from "iterare";
 import {platform} from "os";
-import {NestApplicationContext} from "./nest-application-context";
+import {CleanApplicationContext} from "./nest-application-context";
 import {
   CorsOptions,
   CorsOptionsDelegate, IExceptionFilter,
@@ -11,7 +11,7 @@ import {
 } from "../contracts";
 import {Logger} from "../services";
 import {MiddlewareContainer, MiddlewareModule} from "../middlewares";
-import {NestContainer} from "../ioc";
+import {CleanContainer} from "../ioc";
 import {ApplicationConfig} from "./application-config";
 import {RoutesResolver} from "../routers";
 import {AbstractHttpAdapter} from "../adapters";
@@ -19,9 +19,9 @@ import {addLeadingSlash, isObject} from "../utils";
 import {MESSAGES} from "./constants";
 
 
-export class NestApplication extends NestApplicationContext
+export class CleanApplication extends CleanApplicationContext
   implements ICleanApplication {
-  private readonly logger = new Logger(NestApplication.name, true);
+  private readonly logger = new Logger(CleanApplication.name, true);
   private readonly middlewareModule = new MiddlewareModule();
   private readonly middlewareContainer = new MiddlewareContainer(this.container);
 
@@ -31,7 +31,7 @@ export class NestApplication extends NestApplicationContext
   private isListening = false;
 
   constructor(
-    container: NestContainer,
+    container: CleanContainer,
     private readonly httpAdapter: IHttpServer,
     private readonly config: ApplicationConfig,
     private readonly appOptions: ICleanApplicationOptions = {},

@@ -12,7 +12,7 @@ import { RouterExceptionFilters, RouterProxy } from '../routers';
 import { ContextIdFactory, ExecutionContextHost } from '../helpers';
 import { REQUEST_CONTEXT_ID } from '../routers/request/request-constants';
 import { InvalidMiddlewareException, RuntimeException } from '../exceptions';
-import { STATIC_CONTEXT, NestContainer, Injector, InstanceWrapper, Module } from '../ioc';
+import { STATIC_CONTEXT, CleanContainer, Injector, InstanceWrapper, Module } from '../ioc';
 import { IHttpServer, IMiddlewareConfiguration, ICleanModule, IRouteInfo, ICleanMiddleware } from "../contracts";
 
 export class MiddlewareModule {
@@ -24,11 +24,11 @@ export class MiddlewareModule {
   private routesMapper: RoutesMapper;
   private resolver: MiddlewareResolver;
   private config: ApplicationConfig;
-  private container: NestContainer;
+  private container: CleanContainer;
   private httpAdapter: IHttpServer;
 
   public async register(
-    middlewareContainer: MiddlewareContainer, container: NestContainer, config: ApplicationConfig, injector: Injector, httpAdapter: IHttpServer,
+    middlewareContainer: MiddlewareContainer, container: CleanContainer, config: ApplicationConfig, injector: Injector, httpAdapter: IHttpServer,
   ) {
     const appRef = container.getHttpAdapterRef();
     this.routerExceptionFilter = new RouterExceptionFilters(container, config, appRef);

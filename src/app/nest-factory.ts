@@ -2,8 +2,8 @@ import {Logger} from "../services";
 import {IHttpServer, ICleanApplication, ICleanApplicationContextOptions, ICleanApplicationOptions} from "../contracts";
 import {AbstractHttpAdapter} from "../adapters";
 import {ApplicationConfig} from "./application-config";
-import {InstanceLoader, NestContainer} from "../ioc";
-import {NestApplication} from "./nest-application";
+import {InstanceLoader, CleanContainer} from "../ioc";
+import {CleanApplication} from "./nest-application";
 import {MetadataScanner} from "./metadata-scanner";
 import {DependenciesScanner} from "./scanner";
 import {loadAdapter, rethrow} from "../helpers";
@@ -11,7 +11,7 @@ import {MESSAGES} from "./constants";
 import {isFunction, isNil} from "../utils";
 import {ExceptionsZone} from "../exceptions";
 
-export class NestFactoryStatic {
+export class CleanFactoryStatic {
 
   private readonly logger = new Logger('CleanFactory', true);
   private abortOnError = true;
@@ -27,18 +27,14 @@ export class NestFactoryStatic {
     const [httpServer, appOptions] = this.isHttpServer(serverOrOptions) ? [serverOrOptions, options] : [this.createHttpAdapter(), serverOrOptions];
 
     const applicationConfig = new ApplicationConfig();
-    const container = new NestContainer(applicationConfig);
+    const container = new CleanContainer(applicationConfig);
     this.setAbortOnError(serverOrOptions, options);
     this.applyLogger(appOptions);
     await this.initialize(module, container, applicationConfig, httpServer);
 
-    const instance = new NestApplication(
-      container,
-      httpServer,
-      applicationConfig,
-      appOptions,
-    );
+    const instance = new CleanApplication(container, httpServer, applicationConfig, appOptions);
     const target = this.createNestInstance(instance);
+
     return this.createAdapterProxy<T>(target, httpServer);
   }
 
@@ -46,7 +42,7 @@ export class NestFactoryStatic {
     return this.createProxy(instance);
   }
 
-  private async initialize(module: any, container: NestContainer, config = new ApplicationConfig(), httpServer: IHttpServer = null) {
+  private async initialize(module: any, container: CleanContainer, config = new ApplicationConfig(), httpServer: IHttpServer = null) {
     const instanceLoader = new InstanceLoader(container);
     const metadataScanner = new MetadataScanner();
     const dependenciesScanner = new DependenciesScanner(container, metadataScanner, config);
@@ -126,12 +122,12 @@ export class NestFactoryStatic {
       ? !(options && options.abortOnError === false) : !(serverOrOptions && serverOrOptions.abortOnError === false);
   }
 
-  private createAdapterProxy<T>(app: NestApplication, adapter: IHttpServer): T {
+  private createAdapterProxy<T>(app: CleanApplication, adapter: IHttpServer): T {
      const proxy = new Proxy(app, {
       get: (receiver: Record<string, any>, prop: string) => {
         const mapToProxy = (result: unknown) => {
           if (result instanceof Promise) return result.then(mapToProxy)
-          return result instanceof NestApplication ? proxy : result;
+          return result instanceof CleanApplication ? proxy : result;
         };
 
         if (!(prop in receiver) && prop in adapter) {
@@ -153,4 +149,4 @@ export class NestFactoryStatic {
   }
 }
 
-export const NestFactory = new NestFactoryStatic();
+export const CleanFactory = new CleanFactoryStatic();

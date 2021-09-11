@@ -1,5 +1,5 @@
 import { SCOPE_OPTIONS_METADATA } from '../utils';
-import { NestContainer, InstanceWrapper } from '../ioc';
+import { CleanContainer, InstanceWrapper } from '../ioc';
 import {IMiddlewareConfiguration, Scope, Type} from "../contracts";
 
 export class MiddlewareContainer {
@@ -7,7 +7,7 @@ export class MiddlewareContainer {
   private readonly configurationSets = new Map<string, Set<IMiddlewareConfiguration>>();
 
   constructor(
-      private readonly container: NestContainer
+      private readonly container: CleanContainer
   ) {}
 
   public getMiddlewareCollection(moduleKey: string,): Map<string, InstanceWrapper> {

@@ -3,13 +3,13 @@ import { ApplicationConfig } from '../app';
 import { ContextCreator } from '../helpers';
 import { Controller, ICleanInterceptor } from '../contracts';
 import { INTERCEPTORS_METADATA, isEmpty, isFunction } from '../utils';
-import { STATIC_CONTEXT, NestContainer, InstanceWrapper } from '../ioc';
+import { STATIC_CONTEXT, CleanContainer, InstanceWrapper } from '../ioc';
 
 export class InterceptorsContextCreator extends ContextCreator {
   private moduleContext: string;
 
   constructor(
-    private readonly container: NestContainer,
+    private readonly container: CleanContainer,
     private readonly config?: ApplicationConfig,
   ) {
     super();

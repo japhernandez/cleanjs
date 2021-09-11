@@ -4,7 +4,7 @@ import {RouterExplorer} from "./router-explorer";
 import {HOST_METADATA, MODULE_PATH} from "../utils";
 import {CONTROLLER_MAPPING_MESSAGE} from "../helpers";
 import {ApplicationConfig, MetadataScanner} from "../app";
-import {Injector, InstanceWrapper, NestContainer} from "../ioc";
+import {Injector, InstanceWrapper, CleanContainer} from "../ioc";
 import {RouterExceptionFilters} from "./router-exception-filters";
 import {Controller, IHttpServer, IResolver, Type} from "../contracts";
 import {BadRequestException, NotFoundException} from "../exceptions";
@@ -16,7 +16,7 @@ export class RoutesResolver implements IResolver {
   private readonly routerExplorer: RouterExplorer;
 
   constructor(
-    private readonly container: NestContainer,
+    private readonly container: CleanContainer,
     private readonly config: ApplicationConfig,
     private readonly injector: Injector,
   ) {

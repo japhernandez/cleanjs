@@ -1,5 +1,5 @@
 import {UnknownElementException} from '../exceptions';
-import {NestContainer} from './container';
+import {CleanContainer} from './container';
 import {InstanceWrapper} from './instance-wrapper';
 import {Module} from './module';
 import {isFunction} from '../utils';
@@ -18,7 +18,7 @@ export interface InstanceLink<T = any> {
 export class InstanceLinksHost {
     private readonly instanceLinks = new Map<InstanceToken, InstanceLink[]>();
 
-    constructor(private readonly container: NestContainer) {
+    constructor(private readonly container: CleanContainer) {
         this.initialize();
     }
 

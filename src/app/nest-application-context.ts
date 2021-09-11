@@ -1,12 +1,12 @@
 import {IAbstract, IDynamicModule, ICleanApplicationContext, Scope, Type} from "../contracts";
-import {IContextId, Injector, InstanceLinksHost, Module, ModuleCompiler, NestContainer} from "../ioc";
+import {IContextId, Injector, InstanceLinksHost, Module, ModuleCompiler, CleanContainer} from "../ioc";
 import {InvalidClassScopeException, UnknownElementException, UnknownModuleException} from "../exceptions";
 import {createContextId} from "../helpers";
 import {Logger, LoggerService, LogLevel} from "../services";
 
 type GetType = Type<any> | IAbstract<any> | string | symbol
 
-export class NestApplicationContext implements ICleanApplicationContext {
+export class CleanApplicationContext implements ICleanApplicationContext {
   protected isInitialized = false;
   protected readonly injector = new Injector();
 
@@ -21,7 +21,7 @@ export class NestApplicationContext implements ICleanApplicationContext {
   }
 
   constructor(
-    protected readonly container: NestContainer,
+    protected readonly container: CleanContainer,
     private readonly scope = new Array<Type<any>>(),
     private contextModule: Module = null,
   ) {}
@@ -43,7 +43,7 @@ export class NestApplicationContext implements ICleanApplicationContext {
     const selectedModule = modulesContainer.get(token);
     if (!selectedModule) throw new UnknownModuleException();
 
-    return new NestApplicationContext(this.container, scope, selectedModule);
+    return new CleanApplicationContext(this.container, scope, selectedModule);
   }
 
 

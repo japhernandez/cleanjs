@@ -2,7 +2,7 @@ import { Module } from './module';
 import { Injector } from './injector';
 import { Scope, Type} from "../contracts";
 import { getClassScope } from '../helpers';
-import { NestContainer } from './container';
+import { CleanContainer } from './container';
 import { InstanceLinksHost } from './instance-links-host';
 import { IContextId, InstanceWrapper } from './instance-wrapper';
 import { InvalidClassScopeException, UnknownElementException } from '../exceptions';
@@ -22,7 +22,7 @@ export abstract class ModuleRef {
   }
 
   protected constructor(
-      protected readonly container: NestContainer
+      protected readonly container: CleanContainer
   ) {}
 
   public abstract get<T = any, R = T>(typeOrToken: GetTypes, options?: { strict: boolean }): R;

@@ -4,12 +4,12 @@ import { ApplicationConfig } from '../app';
 import {Controller, IHttpServer} from "../contracts";
 import { IRouterProxyCallback } from './router-proxy';
 import { EXCEPTION_FILTERS_METADATA, isEmpty } from '../utils';
-import { STATIC_CONTEXT, NestContainer, InstanceWrapper } from '../ioc';
+import { STATIC_CONTEXT, CleanContainer, InstanceWrapper } from '../ioc';
 import { BaseExceptionFilterContext, ExceptionsHandler } from '../exceptions';
 
 export class RouterExceptionFilters extends BaseExceptionFilterContext {
   constructor(
-    container: NestContainer,
+    container: CleanContainer,
     private readonly config: ApplicationConfig,
     private readonly applicationRef: IHttpServer,
   ) {

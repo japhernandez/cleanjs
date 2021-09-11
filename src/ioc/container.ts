@@ -12,7 +12,7 @@ import { ModulesContainer } from './modules-container';
 import { GLOBAL_MODULE_METADATA } from '../utils';
 import {IDynamicModule, InjectableInterface, Provider, Type} from "../contracts";
 
-export class NestContainer {
+export class CleanContainer {
 
   private readonly globalModules = new Set<Module>();
   private readonly moduleTokenFactory = new ModuleTokenFactory();

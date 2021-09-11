@@ -17,7 +17,7 @@ import { HandlersConsumer, HandlersContextCreator } from '../handlers';
 import {Controller, IHttpServer, Type, IExceptionsFilter} from "../contracts";
 import { InterceptorsConsumer, InterceptorsContextCreator } from '../interceptors';
 import { UnknownRequestMappingException, InternalServerErrorException } from '../exceptions';
-import { NestContainer, STATIC_CONTEXT, Injector, InstanceWrapper, IContextId, Module } from '../ioc';
+import { CleanContainer, STATIC_CONTEXT, Injector, InstanceWrapper, IContextId, Module } from '../ioc';
 import {ContextIdFactory, ExecutionContextHost, ROUTE_MAPPED_MESSAGE, RouterMethodFactory} from '../helpers';
 
 
@@ -36,7 +36,7 @@ export class RouterExplorer {
 
   constructor(
     private readonly metadataScanner: MetadataScanner,
-    private readonly container: NestContainer,
+    private readonly container: CleanContainer,
     private readonly injector?: Injector,
     private readonly routerProxy?: RouterProxy,
     private readonly exceptionsFilter?: IExceptionsFilter,

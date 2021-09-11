@@ -10,7 +10,7 @@ import {
   Scope,
   Type, IValueProvider, ICleanInterceptor
 } from "../contracts";
-import {InstanceWrapper, Module, ModulesContainer, NestContainer} from "../ioc";
+import {InstanceWrapper, Module, ModulesContainer, CleanContainer} from "../ioc";
 import {MetadataScanner} from "./metadata-scanner";
 import {ApplicationConfig} from "./application-config";
 import {
@@ -37,7 +37,7 @@ export class DependenciesScanner {
   private readonly applicationProvidersApplyMap: ApplicationProviderWrapper[] = [];
 
   constructor(
-    private readonly container: NestContainer,
+    private readonly container: CleanContainer,
     private readonly metadataScanner: MetadataScanner,
     private readonly applicationConfig = new ApplicationConfig(),
   ) {}

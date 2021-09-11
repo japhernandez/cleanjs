@@ -3,13 +3,13 @@ import { ApplicationConfig } from '../app';
 import { IRouterProxyCallback } from '../routers';
 import { EXCEPTION_FILTERS_METADATA, isEmpty } from '../utils';
 import {Controller, IExceptionFilterMetadata} from '../contracts';
-import { STATIC_CONTEXT, NestContainer, InstanceWrapper } from '../ioc';
+import { STATIC_CONTEXT, CleanContainer, InstanceWrapper } from '../ioc';
 import { BaseExceptionFilterContext } from './base-exception-filter-context';
 import { ExternalExceptionsHandler } from './external-exceptions-handler';
 
 export class ExternalExceptionFilterContext extends BaseExceptionFilterContext {
 
-  constructor(container: NestContainer, private readonly config?: ApplicationConfig) {
+  constructor(container: CleanContainer, private readonly config?: ApplicationConfig) {
     super(container);
   }
 
