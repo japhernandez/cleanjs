@@ -6,7 +6,7 @@ import {isFunction} from '../utils';
 import {IAbstract, Type} from "../contracts";
 
 type InstanceToken = string | symbol | Type<any> | IAbstract<any> | Function;
-type HostCollection = 'providers' | 'controllers' | 'injectables';
+type HostCollection = 'providers' | 'controllers' | 'injectables' | 'adapters';
 
 export interface InstanceLink<T = any> {
     token: InstanceToken;
@@ -36,8 +36,9 @@ export class InstanceLinksHost {
     private initialize() {
         const modules = this.container.getModules();
         modules.forEach(moduleRef => {
-            const {providers, injectables, controllers} = moduleRef;
+            const {providers, injectables, controllers, adapters} = moduleRef;
             providers.forEach((wrapper, token) => this.addLink(wrapper, token, moduleRef, 'providers'));
+            adapters.forEach((wrapper, token) => this.addLink(wrapper, token, moduleRef, 'adapters'));
             injectables.forEach((wrapper, token) => this.addLink(wrapper, token, moduleRef, 'injectables'));
             controllers.forEach((wrapper, token) => this.addLink(wrapper, token, moduleRef, 'controllers'));
         });

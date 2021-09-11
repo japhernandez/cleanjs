@@ -1,4 +1,5 @@
 export const MODULE_METADATA = {
+  ADAPTERS: 'adapters',
   IMPORTS: 'imports',
   PROVIDERS: 'providers',
   CONTROLLERS: 'controllers',

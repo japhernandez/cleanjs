@@ -89,6 +89,7 @@ export class DependenciesScanner {
 
     for (const [token, { metaType }] of modules) {
       await this.reflectImports(metaType, token, metaType.name);
+      this.reflectAdapters(metaType, token)
       this.reflectProviders(metaType, token);
       this.reflectControllers(metaType, token);
       this.reflectExports(metaType, token);
@@ -115,6 +116,18 @@ export class DependenciesScanner {
     providers.forEach(provider => {
       this.insertProvider(provider, token);
       this.reflectDynamicMetadata(provider, token);
+    });
+  }
+
+  public reflectAdapters(module: Type<any>, token: string) {
+    const adapters = [
+      ...this.reflectMetadata(module, MODULE_METADATA.ADAPTERS),
+      ...this.container.getDynamicMetadataByToken(token, MODULE_METADATA.ADAPTERS as 'adapters')
+    ];
+
+    adapters.forEach(adapter => {
+      this.insertAdapter(adapter, token);
+      this.reflectDynamicMetadata(adapter, token);
     });
   }
 
@@ -255,6 +268,43 @@ export class DependenciesScanner {
     if (this.isRequestOrTransient((newProvider as IFactoryProvider | IClassProvider).scope)) return this.container.addInjectable(newProvider, token);
 
     this.container.addProvider(newProvider, token);
+  }
+
+  public insertAdapter(adapter: Provider, token: string) {
+
+    const isCustomProvider = this.isCustomProvider(adapter);
+
+    if (!isCustomProvider) return this.container.addAdapter(adapter as Type<any>, token);
+
+    const applyProvidersMap = this.getApplyProvidersMap();
+
+    const providersKeys = Object.keys(applyProvidersMap);
+    const type = (adapter as IClassProvider | IValueProvider | IFactoryProvider | IExistingProvider).provide;
+
+    if (!providersKeys.includes(type as string)) return this.container.addAdapter(adapter as any, token);
+
+    const providerToken = `${ type as string } (UUID: ${randomStringGenerator()})`;
+
+    let scope = (adapter as IClassProvider | IFactoryProvider).scope;
+    if (isNil(scope) && (adapter as IClassProvider).useClass) {
+      scope = getClassScope((adapter as IClassProvider).useClass);
+    }
+    this.applicationProvidersApplyMap.push({
+      type,
+      moduleKey: token,
+      providerKey: providerToken,
+      scope,
+    });
+
+    const newProvider = {
+      ...adapter,
+      provide: providerToken,
+      scope,
+    } as Provider;
+
+    if (this.isRequestOrTransient((newProvider as IFactoryProvider | IClassProvider).scope)) return this.container.addInjectable(newProvider, token);
+
+    this.container.addAdapter(newProvider, token);
   }
 
   public insertInjectable(injectable: Type<InjectableInterface>, token: string, host: Type<InjectableInterface>) {

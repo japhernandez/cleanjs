@@ -105,9 +105,7 @@ export class ExternalContextCreator {
     const paramTypes = this.contextUtils.reflectCallbackParamTypes(instance, method);
     const contextFactory = this.contextUtils.getContextFactory<C>(contextType, instance, instance[method]);
     const getParamsMetadata = (moduleKey: string, contextId = STATIC_CONTEXT, inquirerId?: string) =>
-      paramsFactory
-        ? this.exchangeKeysForValues(keys, metadata, moduleKey, paramsFactory, contextId, inquirerId, contextFactory)
-        : null;
+      paramsFactory ? this.exchangeKeysForValues(keys, metadata, moduleKey, paramsFactory, contextId, inquirerId, contextFactory) : null;
 
     const handlerMetadata: IExternalHandlerMetadata = {
       argsLength,
@@ -125,7 +123,9 @@ export class ExternalContextCreator {
 
     for (const [key, module] of [...this.modulesContainer.entries()]) {
       if (this.getProviderByClassName(module, className)) return key;
+      if (this.getAdapterByClassName(module, className)) return key;
     }
+
     return defaultModuleName;
   }
 
@@ -135,6 +135,12 @@ export class ExternalContextCreator {
     return [...providers.keys()].some(
         provider => provider === className,
     );
+  }
+
+  public getAdapterByClassName(module: Module, className: string): boolean {
+    const { adapters } = module;
+
+    return [...adapters.keys()].some(adapter => adapter === className);
   }
 
   public exchangeKeysForValues<T = any>(

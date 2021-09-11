@@ -107,6 +107,15 @@ export class CleanContainer {
     return moduleRef.addProvider(provider);
   }
 
+  public addAdapter(adapter: Provider, token: string): string {
+    if (!adapter) throw new CircularDependencyException();
+
+    if (!this.modules.has(token)) throw new UnknownModuleException();
+
+    const moduleRef = this.modules.get(token);
+    return moduleRef.addAdapter(adapter);
+  }
+
   public addInjectable(injectable: Provider, token: string, host?: Type<InjectableInterface>) {
     if (!this.modules.has(token)) throw new UnknownModuleException();
     const moduleRef = this.modules.get(token);
