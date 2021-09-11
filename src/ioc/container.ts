@@ -118,6 +118,7 @@ export class CleanContainer {
 
   public addInjectable(injectable: Provider, token: string, host?: Type<InjectableInterface>) {
     if (!this.modules.has(token)) throw new UnknownModuleException();
+
     const moduleRef = this.modules.get(token);
     moduleRef.addInjectable(injectable, host);
   }
