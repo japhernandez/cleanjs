@@ -1,18 +1,15 @@
-import {Controller, HttpServer, Resolver, Type} from "../contracts";
 import {Logger} from "../services";
 import {RouterProxy} from "./router-proxy";
-import {RouterExceptionFilters} from "./router-exception-filters";
 import {RouterExplorer} from "./router-explorer";
-import {Injector, InstanceWrapper, NestContainer} from "../ioc";
-import {
-  ApplicationConfig,
-  MetadataScanner
-} from "../app";
 import {HOST_METADATA, MODULE_PATH} from "../utils";
 import {CONTROLLER_MAPPING_MESSAGE} from "../helpers";
+import {ApplicationConfig, MetadataScanner} from "../app";
+import {Injector, InstanceWrapper, NestContainer} from "../ioc";
+import {RouterExceptionFilters} from "./router-exception-filters";
+import {Controller, IHttpServer, IResolver, Type} from "../contracts";
 import {BadRequestException, NotFoundException} from "../exceptions";
 
-export class RoutesResolver implements Resolver {
+export class RoutesResolver implements IResolver {
   private readonly logger = new Logger(RoutesResolver.name, true);
   private readonly routerProxy = new RouterProxy();
   private readonly routerExceptionsFilter: RouterExceptionFilters;
@@ -23,11 +20,7 @@ export class RoutesResolver implements Resolver {
     private readonly config: ApplicationConfig,
     private readonly injector: Injector,
   ) {
-    this.routerExceptionsFilter = new RouterExceptionFilters(
-      container,
-      config,
-      container.getHttpAdapterRef(),
-    );
+    this.routerExceptionsFilter = new RouterExceptionFilters(container, config, container.getHttpAdapterRef());
     const metadataScanner = new MetadataScanner();
     this.routerExplorer = new RouterExplorer(
       metadataScanner,
@@ -39,100 +32,64 @@ export class RoutesResolver implements Resolver {
     );
   }
 
-  public resolve<T extends HttpServer>(applicationRef: T, basePath: string) {
+  public resolve<T extends IHttpServer>(applicationRef: T, basePath: string) {
     const modules = this.container.getModules();
 
-    modules.forEach(({ controllers, metatype }, moduleName) => {
-      let path = metatype ? this.getModulePathMetadata(metatype) : undefined;
+    modules.forEach(({ controllers, metaType }, module) => {
+      let path = metaType ? this.getModulePathMetadata(metaType) : undefined;
       path = path ? basePath + path : basePath;
 
-      this.registerRouters(controllers, moduleName, path, applicationRef);
+      this.registerRouters(controllers, module, path, applicationRef);
     });
   }
 
-  public registerRouters(
-    routes: Map<string, InstanceWrapper<Controller>>,
-    moduleName: string,
-    basePath: string,
-    applicationRef: HttpServer,
-  ) {
+  public registerRouters(routes: Map<string, InstanceWrapper<Controller>>, moduleName: string, basePath: string, applicationRef: IHttpServer) {
 
     routes.forEach(instanceWrapper => {
-      const { metatype } = instanceWrapper;
-
-      const host = this.getHostMetadata(metatype);
-
-
-
-      const paths = this.routerExplorer.extractRouterPath(
-        metatype as Type<any>,
-        basePath,
-      );
-
-      const controllerName = metatype.name;
+      const { metaType } = instanceWrapper;
+      const host = this.getHostMetadata(metaType);
+      const paths = this.routerExplorer.extractRouterPath(metaType as Type<any>, basePath);
+      const controllerName = metaType.name;
 
       paths.forEach(path => {
         this.logger.log(CONTROLLER_MAPPING_MESSAGE(controllerName, this.routerExplorer.stripEndSlash(path)));
-
-        this.routerExplorer.explore(
-          instanceWrapper,
-          moduleName,
-          applicationRef,
-          path,
-          host,
-        );
+        this.routerExplorer.explore(instanceWrapper, moduleName, applicationRef, path, host);
       });
     });
   }
 
   public registerNotFoundHandler() {
     const applicationRef = this.container.getHttpAdapterRef();
-    const callback = <TRequest, TResponse>(req: TRequest, res: TResponse) => {
+    const callback = <T, R>(req: T, res: R) => {
       const method = applicationRef.getRequestMethod(req);
       const url = applicationRef.getRequestUrl(req);
       throw new NotFoundException(`Cannot ${method} ${url}`);
     };
     const handler = this.routerExceptionsFilter.create({}, callback, undefined);
     const proxy = this.routerProxy.createProxy(callback, handler);
-    applicationRef.setNotFoundHandler &&
-      applicationRef.setNotFoundHandler(proxy, this.config.getGlobalPrefix());
+    applicationRef.setNotFoundHandler && applicationRef.setNotFoundHandler(proxy, this.config.getGlobalPrefix());
   }
 
   public registerExceptionHandler() {
-    const callback = <TError, TRequest, TResponse>(
-      err: TError,
-      req: TRequest,
-      res: TResponse,
-      next: Function,
-    ) => {
+    const callback = <E, T, R>(err: E, req: T, res: R, next: Function) => {
       throw this.mapExternalException(err);
     };
-    const handler = this.routerExceptionsFilter.create(
-      {},
-      callback as any,
-      undefined,
-    );
+
+    const handler = this.routerExceptionsFilter.create({}, callback as any, undefined);
     const proxy = this.routerProxy.createExceptionLayerProxy(callback, handler);
     const applicationRef = this.container.getHttpAdapterRef();
-    applicationRef.setErrorHandler &&
-      applicationRef.setErrorHandler(proxy, this.config.getGlobalPrefix());
+    applicationRef.setErrorHandler && applicationRef.setErrorHandler(proxy, this.config.getGlobalPrefix());
   }
 
   public mapExternalException(err: any) {
-    if (err instanceof SyntaxError) {
-      return new BadRequestException(err.message);
-    } else {
-      return err;
-    }
+    return err instanceof SyntaxError ? new BadRequestException(err.message) : err;
   }
 
-  private getModulePathMetadata(metatype: Type<unknown>): string | undefined {
-    return Reflect.getMetadata(MODULE_PATH, metatype);
+  protected getModulePathMetadata(metaType: Type<unknown>): string | undefined {
+    return Reflect.getMetadata(MODULE_PATH, metaType);
   }
 
-  private getHostMetadata(
-    metatype: Type<unknown> | Function,
-  ): string | string[] | undefined {
-    return Reflect.getMetadata(HOST_METADATA, metatype);
+  protected getHostMetadata(metaType: Type<unknown> | Function): string | string[] | undefined {
+    return Reflect.getMetadata(HOST_METADATA, metaType);
   }
 }

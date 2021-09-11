@@ -1,14 +1,14 @@
 import {iterate} from "iterare";
 import {
-  Abstract,
-  ClassProvider, Controller,
-  DynamicModule, ExceptionFilter, ExistingProvider, FactoryProvider,
+  IAbstract,
+  IClassProvider, Controller,
+  IDynamicModule, IExceptionFilter, IExistingProvider, IFactoryProvider,
   ForwardReference,
-  InjectableInterface, NestInterceptor,
-  PipeTransform,
+  InjectableInterface,
+  IHandlerTransform,
   Provider,
   Scope,
-  Type, ValueProvider
+  Type, IValueProvider, ICleanInterceptor
 } from "../contracts";
 import {InstanceWrapper, Module, ModulesContainer, NestContainer} from "../ioc";
 import {MetadataScanner} from "./metadata-scanner";
@@ -18,7 +18,7 @@ import {
   GUARDS_METADATA,
   INTERCEPTORS_METADATA, isFunction, isNil, isUndefined,
   MODULE_METADATA,
-  PIPES_METADATA, randomStringGenerator, ROUTE_ARGS_METADATA
+  HANDLERS_METADATA, randomStringGenerator, ROUTE_ARGS_METADATA
 } from "../utils";
 import {CircularDependencyException, InvalidModuleException, UndefinedModuleException} from "../exceptions";
 import {getClassScope} from "../helpers";
@@ -28,11 +28,12 @@ import {flatten} from "../decorators";
 interface ApplicationProviderWrapper {
   moduleKey: string;
   providerKey: string;
-  type: string | symbol | Type<any> | Abstract<any> | Function;
+  type: string | symbol | Type<any> | IAbstract<any> | Function;
   scope?: Scope;
 }
 
 export class DependenciesScanner {
+
   private readonly applicationProvidersApplyMap: ApplicationProviderWrapper[] = [];
 
   constructor(
@@ -51,90 +52,54 @@ export class DependenciesScanner {
   }
 
   public async scanForModules(
-    moduleDefinition:
-      | ForwardReference
-      | Type<unknown>
-      | DynamicModule
-      | Promise<DynamicModule>,
-    scope: Type<unknown>[] = [],
-    ctxRegistry: (ForwardReference | DynamicModule | Type<unknown>)[] = [],
+    moduleDefinition: ForwardReference | Type<unknown> | IDynamicModule | Promise<IDynamicModule>,
+    scope: Type<unknown>[] = [], ctxRegistry: (ForwardReference | IDynamicModule | Type<unknown>)[] = []
   ): Promise<Module> {
     const moduleInstance = await this.insertModule(moduleDefinition, scope);
     moduleDefinition = moduleDefinition instanceof Promise ? await moduleDefinition : moduleDefinition;
 
     ctxRegistry.push(moduleDefinition);
 
-    if (this.isForwardReference(moduleDefinition)) {
-      moduleDefinition = moduleDefinition.forwardRef();
-    }
-    const modules = !this.isDynamicModule(
-      moduleDefinition as Type<any> | DynamicModule,
-    )
-      ? this.reflectMetadata(
-          moduleDefinition as Type<any>,
-          MODULE_METADATA.IMPORTS,
-        )
+    if (this.isForwardReference(moduleDefinition)) moduleDefinition = moduleDefinition.forwardRef();
+
+    const modules = !this.isDynamicModule(moduleDefinition as Type<any> | IDynamicModule)
+      ? this.reflectMetadata(moduleDefinition as Type<any>, MODULE_METADATA.IMPORTS)
       : [
-          ...this.reflectMetadata(
-            (moduleDefinition as DynamicModule).module,
-            MODULE_METADATA.IMPORTS,
-          ),
-          ...((moduleDefinition as DynamicModule).imports || []),
+          ...this.reflectMetadata((moduleDefinition as IDynamicModule).module, MODULE_METADATA.IMPORTS),
+          ...((moduleDefinition as IDynamicModule).imports || []),
         ];
 
     for (const [index, innerModule] of modules.entries()) {
-      // In case of a circular dependency (ES module system), JavaScript will resolve the type to `undefined`.
-      if (innerModule === undefined) {
-        throw new UndefinedModuleException(moduleDefinition, index, scope);
-      }
-      if (!innerModule) {
-        throw new InvalidModuleException(moduleDefinition, index, scope);
-      }
-      if (ctxRegistry.includes(innerModule)) {
-        continue;
-      }
-      await this.scanForModules(
-        innerModule,
-        [].concat(scope, moduleDefinition),
-        ctxRegistry,
-      );
+      if (innerModule === undefined) throw new UndefinedModuleException(moduleDefinition, index, scope);
+      if (!innerModule) throw new InvalidModuleException(moduleDefinition, index, scope);
+      if (ctxRegistry.includes(innerModule)) continue;
+
+      await this.scanForModules(innerModule, [].concat(scope, moduleDefinition), ctxRegistry);
     }
     return moduleInstance;
   }
 
-  public async insertModule(
-    module: any,
-    scope: Type<unknown>[],
-  ): Promise<Module> {
-    if (module && module.forwardRef) {
-      return this.container.addModule(module.forwardRef(), scope);
-    }
+  public async insertModule(module: any, scope: Type<unknown>[]): Promise<Module> {
+    if (module && module.forwardRef) return this.container.addModule(module.forwardRef(), scope);
     return this.container.addModule(module, scope);
   }
 
   public async scanModulesForDependencies() {
     const modules = this.container.getModules();
 
-    for (const [token, { metatype }] of modules) {
-      await this.reflectImports(metatype, token, metatype.name);
-      this.reflectProviders(metatype, token);
-      this.reflectControllers(metatype, token);
-      this.reflectExports(metatype, token);
+    for (const [token, { metaType }] of modules) {
+      await this.reflectImports(metaType, token, metaType.name);
+      this.reflectProviders(metaType, token);
+      this.reflectControllers(metaType, token);
+      this.reflectExports(metaType, token);
     }
    await this.calculateModulesDistance(modules);
   }
 
-  public async reflectImports(
-    module: Type<unknown>,
-    token: string,
-    context: string,
-  ) {
+  public async reflectImports(module: Type<unknown>, token: string, context: string) {
     const modules = [
       ...this.reflectMetadata(module, MODULE_METADATA.IMPORTS),
-      ...this.container.getDynamicMetadataByToken(
-        token,
-        MODULE_METADATA.IMPORTS as 'imports',
-      ),
+      ...this.container.getDynamicMetadataByToken(token, MODULE_METADATA.IMPORTS as 'imports')
     ];
     for (const related of modules) {
       await this.insertImport(related, token, context);
@@ -144,10 +109,7 @@ export class DependenciesScanner {
   public reflectProviders(module: Type<any>, token: string) {
     const providers = [
       ...this.reflectMetadata(module, MODULE_METADATA.PROVIDERS),
-      ...this.container.getDynamicMetadataByToken(
-        token,
-        MODULE_METADATA.PROVIDERS as 'providers',
-      ),
+      ...this.container.getDynamicMetadataByToken(token, MODULE_METADATA.PROVIDERS as 'providers')
     ];
 
     providers.forEach(provider => {
@@ -159,10 +121,7 @@ export class DependenciesScanner {
   public reflectControllers(module: Type<any>, token: string) {
     const controllers = [
       ...this.reflectMetadata(module, MODULE_METADATA.CONTROLLERS),
-      ...this.container.getDynamicMetadataByToken(
-        token,
-        MODULE_METADATA.CONTROLLERS as 'controllers',
-      ),
+      ...this.container.getDynamicMetadataByToken(token, MODULE_METADATA.CONTROLLERS as 'controllers')
     ];
     controllers.forEach(item => {
       this.insertController(item, token);
@@ -177,28 +136,21 @@ export class DependenciesScanner {
     this.reflectInjectables(obj, token, GUARDS_METADATA);
     this.reflectInjectables(obj, token, INTERCEPTORS_METADATA);
     this.reflectInjectables(obj, token, EXCEPTION_FILTERS_METADATA);
-    this.reflectInjectables(obj, token, PIPES_METADATA);
+    this.reflectInjectables(obj, token, HANDLERS_METADATA);
     this.reflectParamInjectables(obj, token, ROUTE_ARGS_METADATA);
   }
 
   public reflectExports(module: Type<unknown>, token: string) {
     const exports = [
       ...this.reflectMetadata(module, MODULE_METADATA.EXPORTS),
-      ...this.container.getDynamicMetadataByToken(
-        token,
-        MODULE_METADATA.EXPORTS as 'exports',
-      ),
+      ...this.container.getDynamicMetadataByToken(token, MODULE_METADATA.EXPORTS as 'exports')
     ];
     exports.forEach(exportedProvider =>
       this.insertExportedProvider(exportedProvider, token),
     );
   }
 
-  public reflectInjectables(
-    component: Type<InjectableInterface>,
-    token: string,
-    metadataKey: string,
-  ) {
+  public reflectInjectables(component: Type<InjectableInterface>, token: string, metadataKey: string) {
     const controllerInjectables = this.reflectMetadata(component, metadataKey);
     const methodsInjectables = this.metadataScanner.scanFromPrototype(
       null,
@@ -213,39 +165,22 @@ export class DependenciesScanner {
     ].filter(isFunction);
     const injectables = Array.from(new Set(combinedInjectables));
 
-    injectables.forEach(injectable =>
-      this.insertInjectable(injectable, token, component),
-    );
+    injectables.forEach(injectable => this.insertInjectable(injectable, token, component));
   }
 
-  public reflectParamInjectables(
-    component: Type<InjectableInterface>,
-    token: string,
-    metadataKey: string,
-  ) {
+  public reflectParamInjectables(component: Type<InjectableInterface>, token: string, metadataKey: string) {
     const paramsMetadata = this.metadataScanner.scanFromPrototype(
-      null,
-      component.prototype,
-      method => Reflect.getMetadata(metadataKey, component, method),
+        null, component.prototype, method => Reflect.getMetadata(metadataKey, component, method)
     );
 
-    const paramsInjectables = this.flatten(
-      paramsMetadata,
-    ).map((param: Record<string, any>) =>
+    const paramsInjectables = this.flatten(paramsMetadata).map((param: Record<string, any>) =>
       flatten(Object.keys(param).map(k => param[k].pipes)).filter(isFunction),
     );
 
-
-    flatten(paramsInjectables).forEach((injectable: Type<InjectableInterface>) =>
-      this.insertInjectable(injectable, token, component),
-    );
+    flatten(paramsInjectables).forEach((injectable: Type<InjectableInterface>) => this.insertInjectable(injectable, token, component));
   }
 
-  public reflectKeyMetadata(
-    component: Type<InjectableInterface>,
-    key: string,
-    method: string,
-  ) {
+  public reflectKeyMetadata(component: Type<InjectableInterface>, key: string, method: string) {
     let prototype = component.prototype;
     prototype = Reflect.getPrototypeOf(prototype);
 
@@ -266,9 +201,7 @@ export class DependenciesScanner {
     const modulesStack = [rootModule];
 
     const calculateDistance = (moduleRef: Module, distance = 1) => {
-      if (modulesStack.includes(moduleRef)) {
-        return;
-      }
+      if (modulesStack.includes(moduleRef)) return;
       modulesStack.push(moduleRef);
 
       const moduleImports = rootModule.relatedModules;
@@ -281,48 +214,30 @@ export class DependenciesScanner {
   }
 
   public async insertImport(related: any, token: string, context: string) {
-    if (isUndefined(related)) {
-      throw new CircularDependencyException(context);
-    }
-    if (related && related.forwardRef) {
-      return this.container.addImport(related.forwardRef(), token);
-    }
+    if (isUndefined(related)) throw new CircularDependencyException(context);
+    if (related && related.forwardRef) return this.container.addImport(related.forwardRef(), token);
     await this.container.addImport(related, token);
   }
 
-  public isCustomProvider(
-    provider: Provider,
-  ): provider is
-    | ClassProvider
-    | ValueProvider
-    | FactoryProvider
-    | ExistingProvider {
+  public isCustomProvider( provider: Provider): provider is IClassProvider | IValueProvider | IFactoryProvider | IExistingProvider {
     return provider && !isNil((provider as any).provide);
   }
 
   public insertProvider(provider: Provider, token: string) {
     const isCustomProvider = this.isCustomProvider(provider);
-    if (!isCustomProvider) {
-      return this.container.addProvider(provider as Type<any>, token);
-    }
+    if (!isCustomProvider) return this.container.addProvider(provider as Type<any>, token);
+
     const applyProvidersMap = this.getApplyProvidersMap();
     const providersKeys = Object.keys(applyProvidersMap);
-    const type = (provider as
-      | ClassProvider
-      | ValueProvider
-      | FactoryProvider
-      | ExistingProvider).provide;
+    const type = (provider as IClassProvider | IValueProvider | IFactoryProvider | IExistingProvider).provide;
 
-    if (!providersKeys.includes(type as string)) {
-      return this.container.addProvider(provider as any, token);
-    }
-    const providerToken = `${
-      type as string
-    } (UUID: ${randomStringGenerator()})`;
+    if (!providersKeys.includes(type as string)) return this.container.addProvider(provider as any, token);
 
-    let scope = (provider as ClassProvider | FactoryProvider).scope;
-    if (isNil(scope) && (provider as ClassProvider).useClass) {
-      scope = getClassScope((provider as ClassProvider).useClass);
+    const providerToken = `${ type as string } (UUID: ${randomStringGenerator()})`;
+
+    let scope = (provider as IClassProvider | IFactoryProvider).scope;
+    if (isNil(scope) && (provider as IClassProvider).useClass) {
+      scope = getClassScope((provider as IClassProvider).useClass);
     }
     this.applicationProvidersApplyMap.push({
       type,
@@ -337,28 +252,16 @@ export class DependenciesScanner {
       scope,
     } as Provider;
 
-    if (
-      this.isRequestOrTransient(
-        (newProvider as FactoryProvider | ClassProvider).scope,
-      )
-    ) {
-      return this.container.addInjectable(newProvider, token);
-    }
+    if (this.isRequestOrTransient((newProvider as IFactoryProvider | IClassProvider).scope)) return this.container.addInjectable(newProvider, token);
+
     this.container.addProvider(newProvider, token);
   }
 
-  public insertInjectable(
-    injectable: Type<InjectableInterface>,
-    token: string,
-    host: Type<InjectableInterface>,
-  ) {
+  public insertInjectable(injectable: Type<InjectableInterface>, token: string, host: Type<InjectableInterface>) {
     this.container.addInjectable(injectable, token, host);
   }
 
-  public insertExportedProvider(
-    exportedProvider: Type<InjectableInterface>,
-    token: string,
-  ) {
+  public insertExportedProvider(exportedProvider: Type<InjectableInterface>, token: string) {
     this.container.addExportedProvider(exportedProvider, token);
   }
 
@@ -366,8 +269,8 @@ export class DependenciesScanner {
     this.container.addController(controller, token);
   }
 
-  public reflectMetadata(metatype: Type<any>, metadataKey: string) {
-    return Reflect.getMetadata(metadataKey, metatype) || [];
+  public reflectMetadata(metaType: Type<any>, metadataKey: string) {
+    return Reflect.getMetadata(metadataKey, metaType) || [];
   }
 
   public async registerCoreModule() {
@@ -376,10 +279,6 @@ export class DependenciesScanner {
     this.container.registerCoreModuleRef(instance);
   }
 
-  /**
-   * Add either request or transient globally scoped enhancers
-   * to all controllers metadata storage
-   */
   public addScopedEnhancersMetadata() {
     iterate(this.applicationProvidersApplyMap)
       .filter(wrapper => this.isRequestOrTransient(wrapper.scope))
@@ -401,33 +300,20 @@ export class DependenciesScanner {
     const applyProvidersMap = this.getApplyProvidersMap();
     const applyRequestProvidersMap = this.getApplyRequestProvidersMap();
 
-    const getInstanceWrapper = (
-      moduleKey: string,
-      providerKey: string,
-      collectionKey: 'providers' | 'injectables',
-    ) => {
+    const getInstanceWrapper = (moduleKey: string, providerKey: string, collectionKey: 'providers' | 'injectables') => {
       const modules = this.container.getModules();
       const collection = modules.get(moduleKey)[collectionKey];
       return collection.get(providerKey);
     };
 
-    // Add global enhancers to the application config
     this.applicationProvidersApplyMap.forEach(
       ({ moduleKey, providerKey, type, scope }) => {
         let instanceWrapper: InstanceWrapper;
         if (this.isRequestOrTransient(scope)) {
-          instanceWrapper = getInstanceWrapper(
-            moduleKey,
-            providerKey,
-            'injectables',
-          );
+          instanceWrapper = getInstanceWrapper(moduleKey, providerKey, 'injectables');
           return applyRequestProvidersMap[type as string](instanceWrapper);
         }
-        instanceWrapper = getInstanceWrapper(
-          moduleKey,
-          providerKey,
-          'providers',
-        );
+        instanceWrapper = getInstanceWrapper(moduleKey, providerKey, 'providers');
         applyProvidersMap[type as string](instanceWrapper.instance);
       },
     );
@@ -435,43 +321,39 @@ export class DependenciesScanner {
 
   public getApplyProvidersMap(): { [type: string]: Function } {
     return {
-      [APP_INTERCEPTOR]: (interceptor: NestInterceptor) =>
+      [APP_INTERCEPTOR]: (interceptor: ICleanInterceptor) =>
         this.applicationConfig.addGlobalInterceptor(interceptor),
-      [APP_PIPE]: (pipe: PipeTransform) =>
-        this.applicationConfig.addGlobalPipe(pipe),
-      [APP_FILTER]: (filter: ExceptionFilter) =>
+      [APP_PIPE]: (pipe: IHandlerTransform) =>
+        this.applicationConfig.addGlobalHandler(pipe),
+      [APP_FILTER]: (filter: IExceptionFilter) =>
         this.applicationConfig.addGlobalFilter(filter),
     };
   }
 
   public getApplyRequestProvidersMap(): { [type: string]: Function } {
     return {
-      [APP_INTERCEPTOR]: (interceptor: InstanceWrapper<NestInterceptor>) =>
+      [APP_INTERCEPTOR]: (interceptor: InstanceWrapper<ICleanInterceptor>) =>
         this.applicationConfig.addGlobalRequestInterceptor(interceptor),
-      [APP_PIPE]: (pipe: InstanceWrapper<PipeTransform>) =>
+      [APP_PIPE]: (pipe: InstanceWrapper<IHandlerTransform>) =>
         this.applicationConfig.addGlobalRequestPipe(pipe),
-      [APP_FILTER]: (filter: InstanceWrapper<ExceptionFilter>) =>
+      [APP_FILTER]: (filter: InstanceWrapper<IExceptionFilter>) =>
         this.applicationConfig.addGlobalRequestFilter(filter),
     };
   }
 
-  public isDynamicModule(
-    module: Type<any> | DynamicModule,
-  ): module is DynamicModule {
-    return module && !!(module as DynamicModule).module;
+  public isDynamicModule(module: Type<any> | IDynamicModule): module is IDynamicModule {
+    return module && !!(module as IDynamicModule).module;
   }
 
-  public isForwardReference(
-    module: Type<any> | DynamicModule | ForwardReference,
-  ): module is ForwardReference {
+  public isForwardReference(module: Type<any> | IDynamicModule | ForwardReference): module is ForwardReference {
     return module && !!(module as ForwardReference).forwardRef;
   }
 
-  private flatten<T = any>(arr: T[][]): T[] {
+  protected flatten<T = any>(arr: T[][]): T[] {
     return arr.reduce((a: T[], b: T[]) => a.concat(b), []);
   }
 
-  private isRequestOrTransient(scope: Scope): boolean {
+  protected isRequestOrTransient(scope: Scope): boolean {
     return scope === Scope.REQUEST || scope === Scope.TRANSIENT;
   }
 }

@@ -1,12 +1,12 @@
 import { RequestMethod } from '../enums';
 import { Type } from './type.interface';
 
-export interface RouteInfo {
+export interface IRouteInfo {
   path: string;
   method: RequestMethod;
 }
 
-export interface MiddlewareConfiguration<T = any> {
+export interface IMiddlewareConfiguration<T = any> {
   middleware: T;
-  forRoutes: (Type<any> | string | RouteInfo)[];
+  forRoutes: (Type<any> | string | IRouteInfo)[];
 }

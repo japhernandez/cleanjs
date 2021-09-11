@@ -1,19 +1,6 @@
 import { Type } from './type.interface';
-import { MiddlewareConfigProxy } from './middleware-config-proxy.interface';
+import { IMiddlewareConfigProxy } from './middleware-config-proxy.interface';
 
-/**
- * Interface defining method for applying user defined middlewares to routes.
- *
- * @see [MiddlewareConsumer](https://docs.nestjs.com/middleware#middleware-consumer)
- *
- * @publicApi
- */
-export interface MiddlewareConsumer {
-  /**
-   * @param {...(Type | Function)} middleware middlewares class/function or array of classes/functions
-   * to be attached to the passed routes.
-   *
-   * @returns {MiddlewareConfigProxy}
-   */
-  apply(...middleware: (Type<any> | Function)[]): MiddlewareConfigProxy;
+export interface IMiddlewareConsumer {
+  apply(...middleware: (Type<any> | Function)[]): IMiddlewareConfigProxy;
 }

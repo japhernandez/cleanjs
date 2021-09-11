@@ -1,7 +1,7 @@
 import {RequestMethod} from "../enums";
-import {CorsOptions, CorsOptionsDelegate, HttpServer, NestApplicationOptions, RequestHandler} from "../contracts";
+import {CorsOptions, CorsOptionsDelegate, IHttpServer, ICleanApplicationOptions, RequestHandler} from "../contracts";
 
-export abstract class AbstractHttpAdapter<S = any, T = any, R = any> implements HttpServer<T, R> {
+export abstract class AbstractHttpAdapter<S = any, T = any, R = any> implements IHttpServer<T, R> {
   protected httpServer: S;
 
   protected constructor(protected readonly instance: any) {}
@@ -78,7 +78,7 @@ export abstract class AbstractHttpAdapter<S = any, T = any, R = any> implements 
   }
 
   abstract close();
-  abstract initHttpServer(options: NestApplicationOptions);
+  abstract initHttpServer(options: ICleanApplicationOptions);
   abstract setViewEngine(engine: string);
   abstract getRequestHostname(request);
   abstract getRequestMethod(request);

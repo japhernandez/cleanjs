@@ -1,36 +1,30 @@
 import {isEmpty} from '../utils';
-import {BaseExceptionFilter} from './base-exception-filter';
-import {ArgumentsHost, ExceptionFilterMetadata, Type} from "../contracts";
 import {HttpException} from "./http.exception";
+import {BaseExceptionFilter} from './base-exception-filter';
+import {IArgumentsHost, IExceptionFilterMetadata, Type} from "../contracts";
 import {InvalidExceptionFilterException} from "./invalid-exception-filter.exception";
 
 export class ExceptionsHandler extends BaseExceptionFilter {
 
-  private filters: ExceptionFilterMetadata[] = [];
+  private filters: IExceptionFilterMetadata[] = [];
 
-  public next(exception: Error | HttpException | any, ctx: ArgumentsHost) {
-    if (this.invokeCustomFilters(exception, ctx)) {
-      return;
-    }
+  public next(exception: Error | HttpException | any, ctx: IArgumentsHost) {
+    if (this.invokeCustomFilters(exception, ctx)) return;
     super.catch(exception, ctx);
   }
 
-  public setCustomFilters(filters: ExceptionFilterMetadata[]): void {
-    if (!Array.isArray(filters)) {
-      throw new InvalidExceptionFilterException();
-    }
+  public setCustomFilters(filters: IExceptionFilterMetadata[]): void {
+    if (!Array.isArray(filters)) throw new InvalidExceptionFilterException();
     this.filters = filters;
   }
 
-  public invokeCustomFilters<T = any>(exception: T, ctx: ArgumentsHost): boolean {
-    if (isEmpty(this.filters)) {
-      return false;
-    }
-    const isInstanceOf = (metatype: Type<unknown>) =>
-        exception instanceof metatype;
+  public invokeCustomFilters<T = any>(exception: T, ctx: IArgumentsHost): boolean {
+    if (isEmpty(this.filters)) return false;
 
-    const filter = this.filters.find(({ exceptionMetatypes }) => {
-      return !exceptionMetatypes.length || exceptionMetatypes.some(isInstanceOf);
+    const isInstanceOf = (metaType: Type<unknown>) => exception instanceof metaType;
+
+    const filter = this.filters.find(({ exceptionMetaTypes }) => {
+      return !exceptionMetaTypes.length || exceptionMetaTypes.some(isInstanceOf);
     });
     filter && filter.func(exception, ctx);
     return !!filter;

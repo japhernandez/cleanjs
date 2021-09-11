@@ -3,7 +3,7 @@ import express from 'express';
 import * as http from 'http';
 import * as https from 'https';
 
-import {CorsOptions, CorsOptionsDelegate, NestApplicationOptions} from "../../contracts";
+import {CorsOptions, CorsOptionsDelegate, ICleanApplicationOptions} from "../../contracts";
 import {AbstractHttpAdapter} from "../../adapters";
 import {RouterMethodFactory} from "../../helpers";
 import {isFunction, isNil, isObject} from "../../utils";
@@ -109,7 +109,7 @@ export class ExpressAdapter extends AbstractHttpAdapter {
       .bind(this.instance);
   }
 
-  public initHttpServer(options: NestApplicationOptions) {
+  public initHttpServer(options: ICleanApplicationOptions) {
     const isHttpsEnabled = options && options.httpsOptions;
     if (isHttpsEnabled) {
       this.httpServer = https.createServer(

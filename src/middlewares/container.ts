@@ -1,19 +1,16 @@
 import { SCOPE_OPTIONS_METADATA } from '../utils';
 import { NestContainer, InstanceWrapper } from '../ioc';
-import {MiddlewareConfiguration, Scope, Type} from "../contracts";
+import {IMiddlewareConfiguration, Scope, Type} from "../contracts";
 
 export class MiddlewareContainer {
   private readonly middleware = new Map<string, Map<string, InstanceWrapper>>();
-  private readonly configurationSets = new Map<
-    string,
-    Set<MiddlewareConfiguration>
-  >();
+  private readonly configurationSets = new Map<string, Set<IMiddlewareConfiguration>>();
 
-  constructor(private readonly container: NestContainer) {}
+  constructor(
+      private readonly container: NestContainer
+  ) {}
 
-  public getMiddlewareCollection(
-    moduleKey: string,
-  ): Map<string, InstanceWrapper> {
+  public getMiddlewareCollection(moduleKey: string,): Map<string, InstanceWrapper> {
     if (!this.middleware.has(moduleKey)) {
       const moduleRef = this.container.getModuleByKey(moduleKey);
       this.middleware.set(moduleKey, moduleRef.middlewares);
@@ -21,25 +18,22 @@ export class MiddlewareContainer {
     return this.middleware.get(moduleKey);
   }
 
-  public getConfigurations(): Map<string, Set<MiddlewareConfiguration>> {
+  public getConfigurations(): Map<string, Set<IMiddlewareConfiguration>> {
     return this.configurationSets;
   }
 
-  public insertConfig(
-    configList: MiddlewareConfiguration[],
-    moduleKey: string,
-  ) {
+  public insertConfig(configList: IMiddlewareConfiguration[], moduleKey: string) {
     const middleware = this.getMiddlewareCollection(moduleKey);
     const targetConfig = this.getTargetConfig(moduleKey);
 
     const configurations = configList || [];
-    const insertMiddleware = <T extends Type<unknown>>(metatype: T) => {
-      const token = metatype.name;
+    const insertMiddleware = <T extends Type<unknown>>(metaType: T) => {
+      const token = metaType.name;
       middleware.set(
         token,
         new InstanceWrapper({
-          scope: this.getClassScope(metatype),
-          metatype,
+          scope: this.getClassScope(metaType),
+          metaType,
           name: token,
         }),
       );
@@ -52,15 +46,12 @@ export class MiddlewareContainer {
 
   private getTargetConfig(moduleName: string) {
     if (!this.configurationSets.has(moduleName)) {
-      this.configurationSets.set(
-        moduleName,
-        new Set<MiddlewareConfiguration>(),
-      );
+      this.configurationSets.set(moduleName, new Set<IMiddlewareConfiguration>());
     }
     return this.configurationSets.get(moduleName);
   }
 
-  private getClassScope<T = unknown>(type: Type<T>): Scope {
+  protected getClassScope<T = unknown>(type: Type<T>): Scope {
     const metadata = Reflect.getMetadata(SCOPE_OPTIONS_METADATA, type);
     return metadata && metadata.scope;
   }

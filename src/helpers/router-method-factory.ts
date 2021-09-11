@@ -1,8 +1,8 @@
-import {HttpServer} from "../contracts";
+import {IHttpServer} from "../contracts";
 import {RequestMethod} from "../enums";
 
 export class RouterMethodFactory {
-  public get(target: HttpServer, requestMethod: RequestMethod): Function {
+  public get(target: IHttpServer, requestMethod: RequestMethod): Function {
     switch (requestMethod) {
       case RequestMethod.POST:
         return target.post;

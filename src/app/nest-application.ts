@@ -3,11 +3,11 @@ import {platform} from "os";
 import {NestApplicationContext} from "./nest-application-context";
 import {
   CorsOptions,
-  CorsOptionsDelegate, ExceptionFilter,
-  HttpServer,
-  INestApplication,
-  NestApplicationOptions, NestInterceptor, PipeTransform,
-  Resolver
+  CorsOptionsDelegate, IExceptionFilter,
+  IHttpServer,
+  ICleanApplication,
+  ICleanApplicationOptions, ICleanInterceptor, IHandlerTransform,
+  IResolver
 } from "../contracts";
 import {Logger} from "../services";
 import {MiddlewareContainer, MiddlewareModule} from "../middlewares";
@@ -18,39 +18,30 @@ import {AbstractHttpAdapter} from "../adapters";
 import {addLeadingSlash, isObject} from "../utils";
 import {MESSAGES} from "./constants";
 
-/**
- * @publicApi
- */
-export class NestApplication
-  extends NestApplicationContext
-  implements INestApplication {
+
+export class NestApplication extends NestApplicationContext
+  implements ICleanApplication {
   private readonly logger = new Logger(NestApplication.name, true);
   private readonly middlewareModule = new MiddlewareModule();
-  private readonly middlewareContainer = new MiddlewareContainer(
-    this.container,
-  );
+  private readonly middlewareContainer = new MiddlewareContainer(this.container);
 
-  private readonly routesResolver: Resolver;
+  private readonly routesResolver: IResolver;
   private readonly microservices: any[] = [];
   private httpServer: any;
   private isListening = false;
 
   constructor(
     container: NestContainer,
-    private readonly httpAdapter: HttpServer,
+    private readonly httpAdapter: IHttpServer,
     private readonly config: ApplicationConfig,
-    private readonly appOptions: NestApplicationOptions = {},
+    private readonly appOptions: ICleanApplicationOptions = {},
   ) {
     super(container);
 
     this.selectContextModule();
     this.registerHttpServer();
 
-    this.routesResolver = new RoutesResolver(
-      this.container,
-      this.config,
-      this.injector,
-    );
+    this.routesResolver = new RoutesResolver(this.container, this.config, this.injector);
   }
 
   protected async dispose(): Promise<void> {
@@ -72,23 +63,12 @@ export class NestApplication
     this.httpServer = this.createServer();
   }
 
-  public getUnderlyingHttpServer<T>(): T {
-    return this.httpAdapter.getHttpServer();
-  }
-
   public applyOptions() {
-    if (!this.appOptions || !this.appOptions.cors) {
-      return undefined;
-    }
-    const passCustomOptions =
-      isObject(this.appOptions.cors) ||
-      typeof this.appOptions.cors === 'function';
-    if (!passCustomOptions) {
-      return this.enableCors();
-    }
-    return this.enableCors(
-      this.appOptions.cors as CorsOptions | CorsOptionsDelegate<any>,
-    );
+    if (!this.appOptions || !this.appOptions.cors) return undefined;
+    const passCustomOptions = isObject(this.appOptions.cors) || typeof this.appOptions.cors === 'function';
+    if (!passCustomOptions) return this.enableCors();
+
+    return this.enableCors(this.appOptions.cors as CorsOptions | CorsOptionsDelegate<any>);
   }
 
   public createServer<T = any>(): T {
@@ -97,14 +77,7 @@ export class NestApplication
   }
 
   public async registerModules() {
-
-    await this.middlewareModule.register(
-      this.middlewareContainer,
-      this.container,
-      this.config,
-      this.injector,
-      this.httpAdapter,
-    );
+    await this.middlewareModule.register(this.middlewareContainer, this.container, this.config, this.injector, this.httpAdapter);
   }
 
 
@@ -112,8 +85,7 @@ export class NestApplication
     this.applyOptions();
     await this.httpAdapter?.init();
 
-    const useBodyParser =
-      this.appOptions && this.appOptions.bodyParser !== false;
+    const useBodyParser = this.appOptions && this.appOptions.bodyParser !== false;
     useBodyParser && this.registerParserMiddleware();
 
     await this.registerModules();
@@ -157,15 +129,10 @@ export class NestApplication
     this.httpAdapter.enableCors(options);
   }
 
-  public async listen(
-    port: number | string,
-    callback?: () => void,
-  ): Promise<any>;
-  public async listen(
-    port: number | string,
-    hostname: string,
-    callback?: () => void,
-  ): Promise<any>;
+  public async listen(port: number | string, callback?: () => void): Promise<any>;
+
+  public async listen(port: number | string, hostname: string, callback?: () => void): Promise<any>;
+
   public async listen(port: number | string, ...args: any[]): Promise<any> {
     !this.isInitialized && (await this.init());
     this.isListening = true;
@@ -214,17 +181,17 @@ export class NestApplication
     return this;
   }
 
-  public useGlobalFilters(...filters: ExceptionFilter[]): this {
+  public useGlobalFilters(...filters: IExceptionFilter[]): this {
     this.config.useGlobalFilters(...filters);
     return this;
   }
 
-  public useGlobalPipes(...pipes: PipeTransform<any>[]): this {
-    this.config.useGlobalPipes(...pipes);
+  public useGlobalHandlers(...pipes: IHandlerTransform<any>[]): this {
+    this.config.useGlobalHandler(...pipes);
     return this;
   }
 
-  public useGlobalInterceptors(...interceptors: NestInterceptor[]): this {
+  public useGlobalInterceptors(...interceptors: ICleanInterceptor[]): this {
     this.config.useGlobalInterceptors(...interceptors);
     return this;
   }

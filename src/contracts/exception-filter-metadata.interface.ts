@@ -1,7 +1,7 @@
-import { ExceptionFilter } from './exception-filter.interface';
 import { Type } from './type.interface';
+import { IExceptionFilter } from './exception-filter.interface';
 
-export interface ExceptionFilterMetadata {
-  func: ExceptionFilter['catch'];
-  exceptionMetatypes: Type<any>[];
+export interface IExceptionFilterMetadata {
+  func: IExceptionFilter['catch'];
+  exceptionMetaTypes: Type<any>[];
 }

@@ -1,13 +1,7 @@
-import { ContextId } from '../ioc';
-import {Controller} from "./index";
+import { IContextId } from '../ioc';
 import {ExceptionsHandler} from "../exceptions";
+import {Controller} from "./controller.interface";
 
-export interface ExceptionsFilter {
-  create(
-    instance: Controller,
-    callback: Function,
-    module: string,
-    contextId?: ContextId,
-    inquirerId?: string,
-  ): ExceptionsHandler;
+export interface IExceptionsFilter {
+  create(instance: Controller, callback: Function, module: string, contextId?: IContextId, inquirerId?: string): ExceptionsHandler;
 }

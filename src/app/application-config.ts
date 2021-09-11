@@ -1,14 +1,14 @@
-import {ExceptionFilter, NestInterceptor, PipeTransform} from "../contracts";
 import {InstanceWrapper} from "../ioc";
+import {IExceptionFilter, ICleanInterceptor, IHandlerTransform} from "../contracts";
 
 export class ApplicationConfig {
   private globalPrefix = '';
-  private globalPipes: PipeTransform[] = [];
-  private globalFilters : ExceptionFilter[] = [];
-  private globalInterceptors: NestInterceptor[] = [];
-  private readonly globalRequestPipes: InstanceWrapper<PipeTransform>[] = [];
-  private readonly globalRequestFilters: InstanceWrapper<ExceptionFilter>[] = [];
-  private readonly globalRequestInterceptors: InstanceWrapper<NestInterceptor>[] = [];
+  private globalHandlers: IHandlerTransform[] = [];
+  private globalFilters : IExceptionFilter[] = [];
+  private globalInterceptors: ICleanInterceptor[] = [];
+  private readonly globalRequestHandlers: InstanceWrapper<IHandlerTransform>[] = [];
+  private readonly globalRequestFilters: InstanceWrapper<IExceptionFilter>[] = [];
+  private readonly globalRequestInterceptors: InstanceWrapper<ICleanInterceptor>[] = [];
 
   public setGlobalPrefix(prefix: string) {
     this.globalPrefix = prefix;
@@ -18,65 +18,63 @@ export class ApplicationConfig {
     return this.globalPrefix;
   }
 
-  public addGlobalPipe(pipe: PipeTransform<any>) {
-    this.globalPipes.push(pipe);
+  public addGlobalHandler(pipe: IHandlerTransform<any>) {
+    this.globalHandlers.push(pipe);
   }
 
-  public useGlobalPipes(...pipes: PipeTransform<any>[]) {
-    this.globalPipes = this.globalPipes.concat(pipes);
+  public useGlobalHandler(...pipes: IHandlerTransform<any>[]) {
+    this.globalHandlers = this.globalHandlers.concat(pipes);
   }
 
-  public getGlobalFilters(): ExceptionFilter[] {
+  public getGlobalFilters(): IExceptionFilter[] {
     return this.globalFilters;
   }
 
-  public addGlobalFilter(filter: ExceptionFilter) {
+  public addGlobalFilter(filter: IExceptionFilter) {
     this.globalFilters.push(filter);
   }
 
-  public useGlobalFilters(...filters: ExceptionFilter[]) {
+  public useGlobalFilters(...filters: IExceptionFilter[]) {
     this.globalFilters = this.globalFilters.concat(filters);
   }
 
-  public getGlobalPipes(): PipeTransform<any>[] {
-    return this.globalPipes;
+  public getGlobalHandlers(): IHandlerTransform<any>[] {
+    return this.globalHandlers;
   }
 
-  public getGlobalInterceptors(): NestInterceptor[] {
+  public getGlobalInterceptors(): ICleanInterceptor[] {
     return this.globalInterceptors;
   }
 
-  public addGlobalInterceptor(interceptor: NestInterceptor) {
+  public addGlobalInterceptor(interceptor: ICleanInterceptor) {
     this.globalInterceptors.push(interceptor);
   }
 
-  public useGlobalInterceptors(...interceptors: NestInterceptor[]) {
+  public useGlobalInterceptors(...interceptors: ICleanInterceptor[]) {
     this.globalInterceptors = this.globalInterceptors.concat(interceptors);
   }
 
-  public addGlobalRequestInterceptor(
-    wrapper: InstanceWrapper<NestInterceptor>,
-  ) {
+  public addGlobalRequestInterceptor(wrapper: InstanceWrapper<ICleanInterceptor>) {
     this.globalRequestInterceptors.push(wrapper);
   }
 
-  public getGlobalRequestInterceptors(): InstanceWrapper<NestInterceptor>[] {
+  public getGlobalRequestInterceptors(): InstanceWrapper<ICleanInterceptor>[] {
     return this.globalRequestInterceptors;
   }
 
-  public addGlobalRequestPipe(wrapper: InstanceWrapper<PipeTransform>) {
-    this.globalRequestPipes.push(wrapper);
+  public addGlobalRequestPipe(wrapper: InstanceWrapper<IHandlerTransform>) {
+    this.globalRequestHandlers.push(wrapper);
   }
 
-  public getGlobalRequestPipes(): InstanceWrapper<PipeTransform>[] {
-    return this.globalRequestPipes;
+  public getGlobalRequestPipes(): InstanceWrapper<IHandlerTransform>[] {
+    return this.globalRequestHandlers;
   }
 
-  public addGlobalRequestFilter(wrapper: InstanceWrapper<ExceptionFilter>) {
+  public addGlobalRequestFilter(wrapper: InstanceWrapper<IExceptionFilter>) {
     this.globalRequestFilters.push(wrapper);
   }
 
-  public getGlobalRequestFilters(): InstanceWrapper<ExceptionFilter>[] {
+  public getGlobalRequestFilters(): InstanceWrapper<IExceptionFilter>[] {
     return this.globalRequestFilters;
   }
 }

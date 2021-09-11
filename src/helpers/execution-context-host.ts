@@ -1,6 +1,7 @@
-import {ContextType, ExecutionContext, HttpArgumentsHost, Type} from "../contracts";
+import {ContextType, ExecutionContext, IHttpArgumentsHost, Type} from "../contracts";
 
 export class ExecutionContextHost implements ExecutionContext {
+
   private contextType = 'http';
 
   constructor(
@@ -9,12 +10,12 @@ export class ExecutionContextHost implements ExecutionContext {
     private readonly handler: Function = null,
   ) {}
 
-  setType<TContext extends string = ContextType>(type: TContext) {
+  setType<T extends string = ContextType>(type: T) {
     type && (this.contextType = type);
   }
 
-  getType<TContext extends string = ContextType>(): TContext {
-    return this.contextType as TContext;
+  getType<T extends string = ContextType>(): T {
+    return this.contextType as T;
   }
 
   getClass<T = any>(): Type<T> {
@@ -33,7 +34,7 @@ export class ExecutionContextHost implements ExecutionContext {
     return this.args[index] as T;
   }
 
-  switchToHttp(): HttpArgumentsHost {
+  switchToHttp(): IHttpArgumentsHost {
     return Object.assign(this, {
       getRequest: () => this.getArgByIndex(0),
       getResponse: () => this.getArgByIndex(1),

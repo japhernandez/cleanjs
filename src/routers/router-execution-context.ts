@@ -3,41 +3,34 @@ import {
   HEADERS_METADATA,
   HTTP_CODE_METADATA,
   REDIRECT_METADATA,
-  RENDER_METADATA,
   ROUTE_ARGS_METADATA,
-  SSE_METADATA,
   isEmpty, isString
 } from '../utils';
-import { RouteParamtypes, RequestMethod } from '../enums';
+import { RouteParamTypes, RequestMethod } from '../enums';
 import {
-  HandleResponseFn,
-  HandlerMetadata,
+  IHandleResponseFn,
   HandlerMetadataStorage,
   ExecutionContextHost,
-  ContextUtils
+  ContextUtils, IHandlerMetadata
 } from '../helpers';
 import { STATIC_CONTEXT } from '../ioc';
 import { InterceptorsConsumer, InterceptorsContextCreator } from '../interceptors';
-import { PipesConsumer, PipesContextCreator } from '../pipes';
+import { HandlersConsumer, HandlersContextCreator } from '../handlers';
 import {
-  CustomHeader,
-  RedirectResponse,
+  ICustomHeader,
+  IRedirectResponse,
   RouterResponseController,
 } from './router-response-controller';
-import {ContextType, Controller, HttpServer, PipeTransform, IRouteParamsFactory} from "../contracts";
-import {ParamData, RouteParamMetadata} from "../decorators";
+import {ContextType, Controller, IHttpServer, IHandlerTransform, IRouteParamsFactory} from "../contracts";
+import {ParamData, IRouteParamMetadata} from "../decorators";
 
 
-export interface ParamProperties {
+export interface IParamProperties {
   index: number;
-  type: RouteParamtypes | string;
+  type: RouteParamTypes | string;
   data: ParamData;
-  pipes: PipeTransform[];
-  extractValue: <TRequest, TResponse>(
-    req: TRequest,
-    res: TResponse,
-    next: Function,
-  ) => any;
+  handlers: IHandlerTransform[];
+  extractValue: <T, R>(req: T, res: R, next: Function) => any;
 }
 
 export class RouterExecutionContext {
@@ -47,165 +40,80 @@ export class RouterExecutionContext {
 
   constructor(
     private readonly paramsFactory: IRouteParamsFactory,
-    private readonly pipesContextCreator: PipesContextCreator,
-    private readonly pipesConsumer: PipesConsumer,
+    private readonly handlersContextCreator: HandlersContextCreator,
+    private readonly handlersConsumer: HandlersConsumer,
     private readonly interceptorsContextCreator: InterceptorsContextCreator,
     private readonly interceptorsConsumer: InterceptorsConsumer,
-    readonly applicationRef: HttpServer,
+    readonly applicationRef: IHttpServer,
   ) {
     this.responseController = new RouterResponseController(applicationRef);
   }
 
   public create(
-    instance: Controller,
-    callback: (...args: any[]) => unknown,
-    methodName: string,
-    moduleKey: string,
-    requestMethod: RequestMethod,
-    contextId = STATIC_CONTEXT,
-    inquirerId?: string,
+    instance: Controller, callback: (...args: any[]) => unknown, methodName: string, moduleKey: string,
+    requestMethod: RequestMethod, contextId = STATIC_CONTEXT, inquirerId?: string
   ) {
     const contextType: ContextType = 'http';
     const {
       argsLength,
       fnHandleResponse,
-      paramtypes,
+      paramTypes,
       getParamsMetadata,
       httpStatusCode,
       responseHeaders,
       hasCustomHeaders,
-    } = this.getMetadata(
-      instance,
-      callback,
-      methodName,
-      moduleKey,
-      requestMethod,
-      contextType,
-    );
+    } = this.getMetadata(instance, callback, methodName, moduleKey, requestMethod, contextType);
 
-    const paramsOptions = this.contextUtils.mergeParamsMetatypes(
-      getParamsMetadata(moduleKey, contextId, inquirerId),
-      paramtypes,
-    );
-    const pipes = this.pipesContextCreator.create(
-      instance,
-      callback,
-      moduleKey,
-      contextId,
-      inquirerId,
-    );
-    const interceptors = this.interceptorsContextCreator.create(
-      instance,
-      callback,
-      moduleKey,
-      contextId,
-      inquirerId,
-    );
-
+    const paramsOptions = this.contextUtils.mergeParamsMetaTypes(getParamsMetadata(moduleKey, contextId, inquirerId), paramTypes);
+    const pipes = this.handlersContextCreator.create(instance, callback, moduleKey, contextId, inquirerId);
+    const interceptors = this.interceptorsContextCreator.create(instance, callback, moduleKey, contextId, inquirerId);
     const fnApplyPipes = this.createPipesFn(pipes, paramsOptions);
 
-    const handler = <TRequest, TResponse>(
-      args: any[],
-      req: TRequest,
-      res: TResponse,
-      next: Function,
-    ) => async () => {
+    const handler = <T, R>(args: any[], req: T, res: R, next: Function) => async () => {
       fnApplyPipes && (await fnApplyPipes(args, req, res, next));
       return callback.apply(instance, args);
     };
 
-    return async <TRequest, TResponse>(
-      req: TRequest,
-      res: TResponse,
-      next: Function,
-    ) => {
+    return async <T, R>(req: T, res: R, next: Function) => {
       const args = this.contextUtils.createNullArray(argsLength);
-
       this.responseController.setStatus(res, httpStatusCode);
-      hasCustomHeaders &&
-        this.responseController.setHeaders(res, responseHeaders);
+      hasCustomHeaders && this.responseController.setHeaders(res, responseHeaders);
 
       const result = await this.interceptorsConsumer.intercept(
-        interceptors,
-        [req, res, next],
-        instance,
-        callback,
-        handler(args, req, res, next),
-        contextType,
+          interceptors, [req, res, next], instance, callback, handler(args, req, res, next), contextType
       );
       await (fnHandleResponse)(result, res, req);
     };
   }
 
-  public getMetadata<TContext extends ContextType = ContextType>(
-    instance: Controller,
-    callback: (...args: any[]) => any,
-    methodName: string,
-    moduleKey: string,
-    requestMethod: RequestMethod,
-    contextType: TContext,
-  ): HandlerMetadata {
+  public getMetadata<T extends ContextType = ContextType>(
+    instance: Controller, callback: (...args: any[]) => any, methodName: string,
+    moduleKey: string, requestMethod: RequestMethod, contextType: T,
+  ): IHandlerMetadata {
     const cacheMetadata = this.handlerMetadataStorage.get(instance, methodName);
-    if (cacheMetadata) {
-      return cacheMetadata;
-    }
-    const metadata =
-      this.contextUtils.reflectCallbackMetadata(
-        instance,
-        methodName,
-        ROUTE_ARGS_METADATA,
-      ) || {};
+    if (cacheMetadata) return cacheMetadata;
+
+    const metadata = this.contextUtils.reflectCallbackMetadata(instance, methodName, ROUTE_ARGS_METADATA) || {};
     const keys = Object.keys(metadata);
     const argsLength = this.contextUtils.getArgumentsLength(keys, metadata);
-    const paramtypes = this.contextUtils.reflectCallbackParamtypes(
-      instance,
-      methodName,
-    );
+    const paramTypes = this.contextUtils.reflectCallbackParamTypes(instance, methodName);
+    const contextFactory = this.contextUtils.getContextFactory(contextType, instance, callback);
 
-    const contextFactory = this.contextUtils.getContextFactory(
-      contextType,
-      instance,
-      callback,
-    );
-    const getParamsMetadata = (
-      key: string,
-      contextId = STATIC_CONTEXT,
-      inquirerId?: string,
-    ) =>
-      this.exchangeKeysForValues(
-        keys,
-        metadata,
-        key,
-        contextId,
-        inquirerId,
-        contextFactory,
-      );
+    const getParamsMetadata = (key: string, contextId = STATIC_CONTEXT, inquirerId?: string) =>
+      this.exchangeKeysForValues(keys, metadata, key, contextId, inquirerId, contextFactory);
 
     const paramsMetadata = getParamsMetadata(moduleKey);
-    const isResponseHandled = this.isResponseHandled(
-      instance,
-      methodName,
-      paramsMetadata,
-    );
-
+    const isResponseHandled = this.isResponseHandled(instance, methodName, paramsMetadata);
     const httpRedirectResponse = this.reflectRedirect(callback);
-    const fnHandleResponse = this.createHandleResponseFn(
-      callback,
-      isResponseHandled,
-      httpRedirectResponse,
-    );
-
+    const fnHandleResponse = this.createHandleResponseFn(callback, isResponseHandled, httpRedirectResponse);
     const httpCode = this.reflectHttpStatusCode(callback);
-    const httpStatusCode = httpCode
-      ? httpCode
-      : this.responseController.getStatusByMethod(requestMethod);
-
+    const httpStatusCode = httpCode ? httpCode : this.responseController.getStatusByMethod(requestMethod);
     const responseHeaders = this.reflectResponseHeaders(callback);
     const hasCustomHeaders = !isEmpty(responseHeaders);
-    const handlerMetadata: HandlerMetadata = {
+    const handlerMetadata: IHandlerMetadata = {
       argsLength,
       fnHandleResponse,
-      paramtypes,
+      paramTypes,
       getParamsMetadata,
       httpStatusCode,
       hasCustomHeaders,
@@ -215,186 +123,90 @@ export class RouterExecutionContext {
     return handlerMetadata;
   }
 
-  public reflectRedirect(
-    callback: (...args: unknown[]) => unknown,
-  ): RedirectResponse {
+  public reflectRedirect(callback: (...args: unknown[]) => unknown): IRedirectResponse {
     return Reflect.getMetadata(REDIRECT_METADATA, callback);
   }
 
-  public reflectHttpStatusCode(
-    callback: (...args: unknown[]) => unknown,
-  ): number {
+  public reflectHttpStatusCode(callback: (...args: unknown[]) => unknown): number {
     return Reflect.getMetadata(HTTP_CODE_METADATA, callback);
   }
 
-  public reflectRenderTemplate(
-    callback: (...args: unknown[]) => unknown,
-  ): string {
-    return Reflect.getMetadata(RENDER_METADATA, callback);
-  }
-
-  public reflectResponseHeaders(
-    callback: (...args: unknown[]) => unknown,
-  ): CustomHeader[] {
+  public reflectResponseHeaders(callback: (...args: unknown[]) => unknown): ICustomHeader[] {
     return Reflect.getMetadata(HEADERS_METADATA, callback) || [];
   }
 
-  public reflectSse(callback: (...args: unknown[]) => unknown): string {
-    return Reflect.getMetadata(SSE_METADATA, callback);
-  }
-
   public exchangeKeysForValues(
-    keys: string[],
-    metadata: Record<number, RouteParamMetadata>,
-    moduleContext: string,
-    contextId = STATIC_CONTEXT,
-    inquirerId?: string,
-    contextFactory?: (args: unknown[]) => ExecutionContextHost,
-  ): ParamProperties[] {
-    this.pipesContextCreator.setModuleContext(moduleContext);
+    keys: string[], metadata: Record<number, IRouteParamMetadata>, moduleContext: string,
+    contextId = STATIC_CONTEXT, inquirerId?: string, contextFactory?: (args: unknown[]) => ExecutionContextHost
+  ): IParamProperties[] {
+
+    this.handlersContextCreator.setModuleContext(moduleContext);
 
     return keys.map(key => {
-      const { index, data, pipes: pipesCollection } = metadata[key];
-      const pipes = this.pipesContextCreator.createConcreteContext(
-        pipesCollection,
-        contextId,
-        inquirerId,
-      );
+      const { index, data, handlers: handlersCollection } = metadata[key];
+      const handlers = this.handlersContextCreator.createConcreteContext(handlersCollection, contextId, inquirerId);
       const type = this.contextUtils.mapParamType(key);
 
       if (key.includes(CUSTOM_ROUTE_AGRS_METADATA)) {
         const { factory } = metadata[key];
-        const customExtractValue = this.contextUtils.getCustomFactory(
-          factory,
-          data,
-          contextFactory,
-        );
-        return { index, extractValue: customExtractValue, type, data, pipes };
+        const customExtractValue = this.contextUtils.getCustomFactory(factory, data, contextFactory);
+        return { index, extractValue: customExtractValue, type, data, handlers };
       }
       const numericType = Number(type);
-      const extractValue = <TRequest, TResponse>(
-        req: TRequest,
-        res: TResponse,
-        next: Function,
-      ) =>
-        this.paramsFactory.exchangeKeyForValue(numericType, data, {
-          req,
-          res,
-          next,
-        });
-      return { index, extractValue, type: numericType, data, pipes };
+      const extractValue = <T, R>(req: T, res: R, next: Function) =>
+        this.paramsFactory.exchangeKeyForValue(numericType, data, {req, res, next});
+
+      return { index, extractValue, type: numericType, data, handlers };
     });
   }
 
-  public async getParamValue<T>(
-    value: T,
-    {
-      metatype,
-      type,
-      data,
-    }: { metatype: unknown; type: RouteParamtypes; data: unknown },
-    pipes: PipeTransform[],
-  ): Promise<unknown> {
-    if (!isEmpty(pipes)) {
-      return this.pipesConsumer.apply(
-        value,
-        { metatype, type, data } as any,
-        pipes,
-      );
-    }
+  public async getParamValue<T>(value: T, { metaType, type, data}: { metaType: unknown; type: RouteParamTypes; data: unknown }, handlers: IHandlerTransform[]): Promise<unknown> {
+    if (!isEmpty(handlers)) return this.handlersConsumer.apply(value, { metaType, type, data } as any, handlers);
     return value;
   }
 
-  public isPipeable(type: number | string): boolean {
+  public isHandleable(type: number | string): boolean {
     return (
-      type === RouteParamtypes.BODY ||
-      type === RouteParamtypes.QUERY ||
-      type === RouteParamtypes.PARAM ||
-      type === RouteParamtypes.FILE ||
-      type === RouteParamtypes.FILES ||
+      type === RouteParamTypes.BODY ||
+      type === RouteParamTypes.QUERY ||
+      type === RouteParamTypes.PARAM ||
+      type === RouteParamTypes.FILE ||
+      type === RouteParamTypes.FILES ||
       isString(type)
     );
   }
 
-  public createPipesFn(
-    pipes: PipeTransform[],
-    paramsOptions: (ParamProperties & { metatype?: any })[],
-  ) {
-    const pipesFn = async <TRequest, TResponse>(
-      args: any[],
-      req: TRequest,
-      res: TResponse,
-      next: Function,
-    ) => {
-      const resolveParamValue = async (
-        param: ParamProperties & { metatype?: any },
-      ) => {
-        const {
-          index,
-          extractValue,
-          type,
-          data,
-          metatype,
-          pipes: paramPipes,
-        } = param;
+  public createPipesFn(handlers: IHandlerTransform[], paramsOptions: (IParamProperties & { metaType?: any })[],) {
+    const handlersFn = async <T, R>(args: any[], req: T, res: R, next: Function) => {
+      const resolveParamValue = async (param: IParamProperties & { metaType?: any }) => {
+        const { index, extractValue, type, data, metaType, handlers: paramPipes} = param;
         const value = extractValue(req, res, next);
-
-        args[index] = this.isPipeable(type)
-          ? await this.getParamValue(
-              value,
-              { metatype, type, data } as any,
-              pipes.concat(paramPipes),
-            )
-          : value;
+        args[index] = this.isHandleable(type) ? await this.getParamValue(value, { metaType, type, data } as any, handlers.concat(paramPipes)) : value;
       };
       await Promise.all(paramsOptions.map(resolveParamValue));
     };
-    return paramsOptions.length ? pipesFn : null;
+    return paramsOptions.length ? handlersFn : null;
   }
 
   public createHandleResponseFn(
-    callback: (...args: unknown[]) => unknown,
-    isResponseHandled: boolean,
-    redirectResponse?: RedirectResponse,
-    httpStatusCode?: number,
-  ): HandleResponseFn {
-    const renderTemplate = this.reflectRenderTemplate(callback);
-    if (renderTemplate) {
-      return async <TResult, TResponse>(result: TResult, res: TResponse) => {
-        return this.responseController.render(
-          result,
-          res,
-          renderTemplate,
-        );
-      };
-    }
+    callback: (...args: unknown[]) => unknown, isResponseHandled: boolean, redirectResponse?: IRedirectResponse, httpStatusCode?: number
+  ): IHandleResponseFn {
 
     if (redirectResponse && typeof redirectResponse.url === 'string') {
-      return async <TResult, TResponse>(result: TResult, res: TResponse) => {
+      return async <T, R>(result: T, res: R) => {
         await this.responseController.redirect(result, res, redirectResponse);
       };
     }
 
-    return async <TResult, TResponse>(result: TResult, res: TResponse) => {
+    return async <T, R>(result: T, res: R) => {
       result = await this.responseController.transformToResult(result);
-      !isResponseHandled &&
-        (await this.responseController.apply(result, res, httpStatusCode));
+      !isResponseHandled && (await this.responseController.apply(result, res, httpStatusCode));
     };
   }
 
-  private isResponseHandled(
-    instance: Controller,
-    methodName: string,
-    paramsMetadata: ParamProperties[],
-  ): boolean {
-    const hasResponseOrNextDecorator = paramsMetadata.some(
-      ({ type }) =>
-        type === RouteParamtypes.RESPONSE || type === RouteParamtypes.NEXT,
-    );
-    const isPassthroughEnabled = this.contextUtils.reflectPassthrough(
-      instance,
-      methodName,
-    );
-    return hasResponseOrNextDecorator && !isPassthroughEnabled;
+  private isResponseHandled(instance: Controller, methodName: string, paramsMetadata: IParamProperties[]): boolean {
+    const hasResponseOrNextDecorator = paramsMetadata.some(({ type }) => type === RouteParamTypes.RESPONSE || type === RouteParamTypes.NEXT);
+    const isPassthroughsEnabled = this.contextUtils.reflectPassthroughs(instance, methodName);
+    return hasResponseOrNextDecorator && !isPassthroughsEnabled;
   }
 }

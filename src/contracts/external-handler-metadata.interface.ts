@@ -1,13 +1,14 @@
-import { ContextId } from '../ioc';
-import {ParamProperties} from "../routers";
+import { IContextId } from '../ioc';
+import {IParamProperties} from "../routers";
 
-type ParamPropertiesWithMetatype<T = any> = ParamProperties & { metatype?: T };
-export interface ExternalHandlerMetadata {
+type ParamPropertiesWithMetaType<T = any> = IParamProperties & { metaType?: T };
+
+export interface IExternalHandlerMetadata {
+
   argsLength: number;
-  paramtypes: any[];
-  getParamsMetadata: (
-    moduleKey: string,
-    contextId?: ContextId,
-    inquirerId?: string,
-  ) => ParamPropertiesWithMetatype[];
+
+  paramTypes: any[];
+
+  getParamsMetadata: (moduleKey: string, contextId?: IContextId, inquirerId?: string) => ParamPropertiesWithMetaType[];
+
 }

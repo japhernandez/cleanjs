@@ -1,5 +1,5 @@
-import { MiddlewareConsumer } from './middleware-consumer.interface';
+import { IMiddlewareConsumer } from './middleware-consumer.interface';
 
-export interface NestModule {
-  configure(consumer: MiddlewareConsumer);
+export interface ICleanModule {
+  configure(consumer: IMiddlewareConsumer);
 }

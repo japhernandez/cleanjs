@@ -1,8 +1,8 @@
+import {Reflector} from "../services";
 import { requestProvider } from '../routers';
 import { inquirerProvider } from './inquirer';
 import {Global, Container} from "../decorators";
-import {Reflector} from "../services";
-import {DynamicModule, ValueProvider} from "../contracts";
+import {IDynamicModule, IValueProvider} from "../contracts";
 
 @Global()
 @Container({
@@ -10,7 +10,7 @@ import {DynamicModule, ValueProvider} from "../contracts";
   exports: [Reflector, requestProvider, inquirerProvider],
 })
 export class InternalCoreModule {
-  static register(providers: ValueProvider[]): DynamicModule {
+  static register(providers: IValueProvider[]): IDynamicModule {
     return {
       module: InternalCoreModule,
       providers: [...providers],

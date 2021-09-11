@@ -1,42 +1,26 @@
-import { RouteParamtypes } from '../enums';
+import { RouteParamTypes } from '../enums';
 import { IRouteParamsFactory } from '../contracts';
 
 export class RouteParamsFactory implements IRouteParamsFactory {
-  public exchangeKeyForValue<
-    TRequest extends Record<string, any> = any,
-    TResponse = any,
-    TResult = any
-  >(
-    key: RouteParamtypes | string,
-    data: string | object | any,
-    { req, res, next }: { req: TRequest; res: TResponse; next: Function },
-  ): TResult {
+
+  public exchangeKeyForValue<T extends Record<string, any> = any, R = any, TResult = any>(
+    key: RouteParamTypes | string, data: string | object | any, { req, res, next }: { req: T; res: R; next: Function }): TResult {
+
     switch (key) {
-      case RouteParamtypes.NEXT:
+      case RouteParamTypes.NEXT:
         return next as any;
-      case RouteParamtypes.REQUEST:
+      case RouteParamTypes.REQUEST:
         return req as any;
-      case RouteParamtypes.RESPONSE:
+      case RouteParamTypes.RESPONSE:
         return res as any;
-      case RouteParamtypes.BODY:
+      case RouteParamTypes.BODY:
         return data && req.body ? req.body[data] : req.body;
-      case RouteParamtypes.PARAM:
+      case RouteParamTypes.PARAM:
         return data ? req.params[data] : req.params;
-      case RouteParamtypes.HOST:
-        const hosts = req.hosts || {};
-        return data ? hosts[data] : hosts;
-      case RouteParamtypes.QUERY:
+      case RouteParamTypes.QUERY:
         return data ? req.query[data] : req.query;
-      case RouteParamtypes.HEADERS:
+      case RouteParamTypes.HEADERS:
         return data ? req.headers[data.toLowerCase()] : req.headers;
-      case RouteParamtypes.SESSION:
-        return req.session;
-      case RouteParamtypes.FILE:
-        return req[data || 'file'];
-      case RouteParamtypes.FILES:
-        return req.files;
-      case RouteParamtypes.IP:
-        return req.ip;
       default:
         return null;
     }

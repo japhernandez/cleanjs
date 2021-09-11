@@ -1,14 +1,15 @@
-import { RouteParamtypes } from '../enums';
 import {Paramtype} from "../contracts";
+import { RouteParamTypes } from '../enums';
 
 export class ParamsTokenFactory {
-  public exchangeEnumForString(type: RouteParamtypes): Paramtype {
+
+  public exchangeEnumForString(type: RouteParamTypes): Paramtype {
     switch (type) {
-      case RouteParamtypes.BODY:
+      case RouteParamTypes.BODY:
         return 'body';
-      case RouteParamtypes.PARAM:
+      case RouteParamTypes.PARAM:
         return 'param';
-      case RouteParamtypes.QUERY:
+      case RouteParamTypes.QUERY:
         return 'query';
       default:
         return 'custom';

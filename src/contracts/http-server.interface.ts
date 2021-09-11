@@ -3,46 +3,28 @@ import {
   CorsOptions,
   CorsOptionsDelegate,
 } from './cors-options.interface';
-import { NestApplicationOptions } from './nest-application-options.interface';
+import { ICleanApplicationOptions } from './nest-application-options.interface';
 
-export type ErrorHandler<TRequest = any, TResponse = any> = (
-  error: any,
-  req: TRequest,
-  res: TResponse,
-  next?: Function,
-) => any;
-export type RequestHandler<TRequest = any, TResponse = any> = (
-  req: TRequest,
-  res: TResponse,
-  next?: Function,
-) => any;
+export type ErrorHandler<T = any, R = any> = (error: any, req: T, res: R, next?: Function) => any;
+export type RequestHandler<T = any, R = any> = (req: T, res: R, next?: Function) => any;
 
-export interface HttpServer<TRequest = any, TResponse = any> {
-  use(
-    handler:
-      | RequestHandler<TRequest, TResponse>
-      | ErrorHandler<TRequest, TResponse>,
-  ): any;
-  use(
-    path: string,
-    handler:
-      | RequestHandler<TRequest, TResponse>
-      | ErrorHandler<TRequest, TResponse>,
-  ): any;
-  get(handler: RequestHandler<TRequest, TResponse>): any;
-  get(path: string, handler: RequestHandler<TRequest, TResponse>): any;
-  post(handler: RequestHandler<TRequest, TResponse>): any;
-  post(path: string, handler: RequestHandler<TRequest, TResponse>): any;
-  head(handler: RequestHandler<TRequest, TResponse>): any;
-  head(path: string, handler: RequestHandler<TRequest, TResponse>): any;
-  delete(handler: RequestHandler<TRequest, TResponse>): any;
-  delete(path: string, handler: RequestHandler<TRequest, TResponse>): any;
-  put(handler: RequestHandler<TRequest, TResponse>): any;
-  put(path: string, handler: RequestHandler<TRequest, TResponse>): any;
-  patch(handler: RequestHandler<TRequest, TResponse>): any;
-  patch(path: string, handler: RequestHandler<TRequest, TResponse>): any;
-  options(handler: RequestHandler<TRequest, TResponse>): any;
-  options(path: string, handler: RequestHandler<TRequest, TResponse>): any;
+export interface IHttpServer<T = any, R = any> {
+  use(handler: RequestHandler<T, R> | ErrorHandler<T, R>): any;
+  use(path: string, handler: RequestHandler<T, R> | ErrorHandler<T, R>): any;
+  get(handler: RequestHandler<T, R>): any;
+  get(path: string, handler: RequestHandler<T, R>): any;
+  post(handler: RequestHandler<T, R>): any;
+  post(path: string, handler: RequestHandler<T, R>): any;
+  head(handler: RequestHandler<T, R>): any;
+  head(path: string, handler: RequestHandler<T, R>): any;
+  delete(handler: RequestHandler<T, R>): any;
+  delete(path: string, handler: RequestHandler<T, R>): any;
+  put(handler: RequestHandler<T, R>): any;
+  put(path: string, handler: RequestHandler<T, R>): any;
+  patch(handler: RequestHandler<T, R>): any;
+  patch(path: string, handler: RequestHandler<T, R>): any;
+  options(handler: RequestHandler<T, R>): any;
+  options(path: string, handler: RequestHandler<T, R>): any;
   listen(port: number | string, callback?: () => void): any;
   listen(port: number | string, hostname: string, callback?: () => void): any;
   reply(response: any, body: any, statusCode?: number): any;
@@ -55,19 +37,15 @@ export interface HttpServer<TRequest = any, TResponse = any> {
   useStaticAssets?(...args: any[]): this;
   setBaseViewsDir?(path: string | string[]): this;
   setViewEngine?(engineOrOptions: any): this;
-  createMiddlewareFactory(
-    method: RequestMethod,
-  ):
-    | ((path: string, callback: Function) => any)
-    | Promise<(path: string, callback: Function) => any>;
-  getRequestHostname?(request: TRequest): string;
-  getRequestMethod?(request: TRequest): string;
-  getRequestUrl?(request: TRequest): string;
+  createMiddlewareFactory(method: RequestMethod): ((path: string, callback: Function) => any) | Promise<(path: string, callback: Function) => any>;
+  getRequestHostname?(request: T): string;
+  getRequestMethod?(request: T): string;
+  getRequestUrl?(request: T): string;
   getInstance(): any;
   registerParserMiddleware(): any;
-  enableCors(options: CorsOptions | CorsOptionsDelegate<TRequest>): any;
+  enableCors(options: CorsOptions | CorsOptionsDelegate<T>): any;
   getHttpServer(): any;
-  initHttpServer(options: NestApplicationOptions): void;
+  initHttpServer(options: ICleanApplicationOptions): void;
   close(): any;
   getType(): string;
   init?(): Promise<void>;

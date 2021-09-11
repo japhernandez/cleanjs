@@ -1,13 +1,9 @@
-import {RouteParamtypes} from "../enums/route-paramtypes.enum";
+import {RouteParamTypes} from "../enums";
 
 export interface IRouteParamsFactory {
-  exchangeKeyForValue<
-    TRequest extends Record<string, any> = any,
-    TResponse = any,
-    TResult = any
-  >(
-    key: RouteParamtypes | string,
+  exchangeKeyForValue<T extends Record<string, any> = any, R = any, TResult = any>(
+    key: RouteParamTypes | string,
     data: any,
-    { req, res, next }: { req: TRequest; res: TResponse; next: Function },
+    { req, res, next }: { req: T; res: R; next: Function }
   ): TResult;
 }

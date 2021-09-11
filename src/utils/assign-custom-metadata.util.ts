@@ -1,26 +1,13 @@
 import { CUSTOM_ROUTE_AGRS_METADATA } from './constants';
-import {
-  ParamData,
-  RouteParamMetadata,
-} from '../decorators/route-params.decorator';
-import { PipeTransform, Type } from '../contracts';
-import { CustomParamFactory } from '../contracts/custom-route-param-factory.interface';
+import { ParamData, IRouteParamMetadata } from '../decorators';
+import { IHandlerTransform, Type, CustomParamFactory } from '../contracts';
 
 export function assignCustomParameterMetadata(
-  args: Record<number, RouteParamMetadata>,
-  paramtype: number | string,
-  index: number,
-  factory: CustomParamFactory,
-  data?: ParamData,
-  ...pipes: (Type<PipeTransform> | PipeTransform)[]
+  args: Record<number, IRouteParamMetadata>, paramType: number | string, index: number,
+  factory: CustomParamFactory, data?: ParamData, ...pipes: (Type<IHandlerTransform> | IHandlerTransform)[]
 ) {
   return {
     ...args,
-    [`${paramtype}${CUSTOM_ROUTE_AGRS_METADATA}:${index}`]: {
-      index,
-      factory,
-      data,
-      pipes,
-    },
+    [`${paramType}${CUSTOM_ROUTE_AGRS_METADATA}:${index}`]: { index, factory, data, pipes }
   };
 }

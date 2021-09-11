@@ -1,3 +1,3 @@
-export interface Abstract<T> extends Function {
+export interface IAbstract<T> extends Function {
   prototype: T;
 }

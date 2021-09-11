@@ -4,11 +4,12 @@ import {
   isUndefined,
   PATH_METADATA
 } from '../utils';
+import {RequestMethod} from "../enums";
 import { NestContainer } from '../ioc';
 import { MetadataScanner } from '../app';
 import { RouterExplorer } from '../routers';
-import {RouteInfo, Type} from "../contracts";
-import {RequestMethod} from "../enums";
+import {IRouteInfo, Type} from "../contracts";
+
 
 export class RoutesMapper {
   private readonly routerExplorer: RouterExplorer;
@@ -17,35 +18,14 @@ export class RoutesMapper {
     this.routerExplorer = new RouterExplorer(new MetadataScanner(), container);
   }
 
-  public mapRouteToRouteInfo(
-    route: Type<any> | RouteInfo | string,
-  ): RouteInfo[] {
-    if (isString(route)) {
-      return [
-        {
-          path: this.validateRoutePath(route),
-          method: RequestMethod.ALL,
-        },
-      ];
-    }
-    const routePathOrPaths: string | string[] = Reflect.getMetadata(
-      PATH_METADATA,
-      route,
-    );
-    if (this.isRouteInfo(routePathOrPaths, route)) {
-      return [
-        {
-          path: this.validateRoutePath(route.path),
-          method: route.method,
-        },
-      ];
-    }
-    const paths = this.routerExplorer.scanForPaths(
-      Object.create(route),
-      route.prototype,
-    );
-    const concatPaths = <T>(acc: T[], currentValue: T[]) =>
-      acc.concat(currentValue);
+  public mapRouteToRouteInfo(route: Type<any> | IRouteInfo | string): IRouteInfo[] {
+    if (isString(route)) return [{ path: this.validateRoutePath(route), method: RequestMethod.ALL } ];
+
+    const routePathOrPaths: string | string[] = Reflect.getMetadata(PATH_METADATA, route);
+    if (this.isRouteInfo(routePathOrPaths, route)) return [{ path: this.validateRoutePath(route.path), method: route.method }];
+
+    const paths = this.routerExplorer.scanForPaths(Object.create(route), route.prototype);
+    const concatPaths = <T>(acc: T[], currentValue: T[]) => acc.concat(currentValue);
 
     return []
       .concat(routePathOrPaths)
@@ -66,19 +46,16 @@ export class RoutesMapper {
       .reduce(concatPaths, []);
   }
 
-  private isRouteInfo(
-    path: string | string[] | undefined,
-    objectOrClass: Function | RouteInfo,
-  ): objectOrClass is RouteInfo {
+  protected isRouteInfo(path: string | string[] | undefined, objectOrClass: Function | IRouteInfo): objectOrClass is IRouteInfo {
     return isUndefined(path);
   }
 
-  private validateGlobalPath(path: string): string {
+  protected validateGlobalPath(path: string): string {
     const prefix = addLeadingSlash(path);
     return prefix === '/' ? '' : prefix;
   }
 
-  private validateRoutePath(path: string): string {
+  protected validateRoutePath(path: string): string {
     return addLeadingSlash(path);
   }
 }

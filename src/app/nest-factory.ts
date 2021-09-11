@@ -1,5 +1,5 @@
 import {Logger} from "../services";
-import {HttpServer, INestApplication, NestApplicationContextOptions, NestApplicationOptions} from "../contracts";
+import {IHttpServer, ICleanApplication, ICleanApplicationContextOptions, ICleanApplicationOptions} from "../contracts";
 import {AbstractHttpAdapter} from "../adapters";
 import {ApplicationConfig} from "./application-config";
 import {InstanceLoader, NestContainer} from "../ioc";
@@ -12,45 +12,19 @@ import {isFunction, isNil} from "../utils";
 import {ExceptionsZone} from "../exceptions";
 
 export class NestFactoryStatic {
-  private readonly logger = new Logger('NestFactory', true);
+
+  private readonly logger = new Logger('CleanFactory', true);
   private abortOnError = true;
-  /**
-   * Creates an instance of NestApplication.
-   *
-   * @param module Entry (root) application module class
-   * @param options List of options to initialize NestApplication
-   *
-   * @returns A promise that, when resolved,
-   * contains a reference to the NestApplication instance.
-   */
-  public async create<T extends INestApplication = INestApplication>(
-    module: any,
-    options?: NestApplicationOptions,
-  ): Promise<T>;
-  /**
-   * Creates an instance of NestApplication with the specified `httpAdapter`.
-   *
-   * @param module Entry (root) application module class
-   * @param httpAdapter Adapter to proxy the request/response cycle to
-   *    the underlying HTTP server
-   * @param options List of options to initialize NestApplication
-   *
-   * @returns A promise that, when resolved,
-   * contains a reference to the NestApplication instance.
-   */
-  public async create<T extends INestApplication = INestApplication>(
-    module: any,
-    httpAdapter: AbstractHttpAdapter,
-    options?: NestApplicationOptions,
-  ): Promise<T>;
-  public async create<T extends INestApplication = INestApplication>(
-    module: any,
-    serverOrOptions?: AbstractHttpAdapter | NestApplicationOptions,
-    options?: NestApplicationOptions,
+
+  public async create<T extends ICleanApplication = ICleanApplication>(module: any, options?: ICleanApplicationOptions): Promise<T>;
+
+  public async create<T extends ICleanApplication = ICleanApplication>(module: any, httpAdapter: AbstractHttpAdapter, options?: ICleanApplicationOptions): Promise<T>;
+
+  public async create<T extends ICleanApplication = ICleanApplication>(
+    module: any, serverOrOptions?: AbstractHttpAdapter | ICleanApplicationOptions, options?: ICleanApplicationOptions,
   ): Promise<T> {
-    const [httpServer, appOptions] = this.isHttpServer(serverOrOptions)
-      ? [serverOrOptions, options]
-      : [this.createHttpAdapter(), serverOrOptions];
+
+    const [httpServer, appOptions] = this.isHttpServer(serverOrOptions) ? [serverOrOptions, options] : [this.createHttpAdapter(), serverOrOptions];
 
     const applicationConfig = new ApplicationConfig();
     const container = new NestContainer(applicationConfig);
@@ -72,19 +46,10 @@ export class NestFactoryStatic {
     return this.createProxy(instance);
   }
 
-  private async initialize(
-    module: any,
-    container: NestContainer,
-    config = new ApplicationConfig(),
-    httpServer: HttpServer = null,
-  ) {
+  private async initialize(module: any, container: NestContainer, config = new ApplicationConfig(), httpServer: IHttpServer = null) {
     const instanceLoader = new InstanceLoader(container);
     const metadataScanner = new MetadataScanner();
-    const dependenciesScanner = new DependenciesScanner(
-      container,
-      metadataScanner,
-      config,
-    );
+    const dependenciesScanner = new DependenciesScanner(container, metadataScanner, config);
     container.setHttpAdapter(httpServer);
 
     const teardown = this.abortOnError === false ? rethrow : undefined;
@@ -103,9 +68,7 @@ export class NestFactoryStatic {
   }
 
   private handleInitializationError(err: unknown) {
-    if (this.abortOnError) {
-      process.abort();
-    }
+    if (this.abortOnError) process.abort();
     rethrow(err);
   }
 
@@ -119,20 +82,14 @@ export class NestFactoryStatic {
 
   private createExceptionProxy() {
     return (receiver: Record<string, any>, prop: string) => {
-      if (!(prop in receiver)) {
-        return;
-      }
-      if (isFunction(receiver[prop])) {
-        return this.createExceptionZone(receiver, prop);
-      }
+      if (!(prop in receiver)) return;
+      if (isFunction(receiver[prop])) return this.createExceptionZone(receiver, prop);
+
       return receiver[prop];
     };
   }
 
-  private createExceptionZone(
-    receiver: Record<string, any>,
-    prop: string,
-  ): Function {
+  private createExceptionZone(receiver: Record<string, any>, prop: string): Function {
     const teardown = this.abortOnError === false ? rethrow : undefined;
 
     return (...args: unknown[]) => {
@@ -145,10 +102,9 @@ export class NestFactoryStatic {
     };
   }
 
-  private applyLogger(options: NestApplicationContextOptions | undefined) {
-    if (!options || options?.logger === true || isNil(options?.logger)) {
-      return;
-    }
+  protected applyLogger(options: ICleanApplicationContextOptions | undefined) {
+    if (!options || options?.logger === true || isNil(options?.logger)) return;
+
     Logger.overrideLogger(options.logger);
   }
 
@@ -161,28 +117,20 @@ export class NestFactoryStatic {
     return new ExpressAdapter(httpServer);
   }
 
-  private isHttpServer(
-    serverOrOptions: AbstractHttpAdapter | NestApplicationOptions,
-  ): serverOrOptions is AbstractHttpAdapter {
+  protected isHttpServer(serverOrOptions: AbstractHttpAdapter | ICleanApplicationOptions): serverOrOptions is AbstractHttpAdapter {
     return !!(serverOrOptions && (serverOrOptions as AbstractHttpAdapter).patch);
   }
 
-  private setAbortOnError(
-    serverOrOptions?: AbstractHttpAdapter | NestApplicationOptions,
-    options?: NestApplicationContextOptions | NestApplicationOptions,
-  ) {
+  private setAbortOnError(serverOrOptions?: AbstractHttpAdapter | ICleanApplicationOptions, options?: ICleanApplicationContextOptions | ICleanApplicationOptions) {
     this.abortOnError = this.isHttpServer(serverOrOptions)
-      ? !(options && options.abortOnError === false)
-      : !(serverOrOptions && serverOrOptions.abortOnError === false);
+      ? !(options && options.abortOnError === false) : !(serverOrOptions && serverOrOptions.abortOnError === false);
   }
 
-  private createAdapterProxy<T>(app: NestApplication, adapter: HttpServer): T {
+  private createAdapterProxy<T>(app: NestApplication, adapter: IHttpServer): T {
      const proxy = new Proxy(app, {
       get: (receiver: Record<string, any>, prop: string) => {
         const mapToProxy = (result: unknown) => {
-
           if (result instanceof Promise) return result.then(mapToProxy)
-
           return result instanceof NestApplication ? proxy : result;
         };
 
@@ -205,17 +153,4 @@ export class NestFactoryStatic {
   }
 }
 
-/**
- * Use NestFactory to create an application instance.
- *
- * ### Specifying an entry module
- *
- * Pass the required *root module* for the application via the module parameter.
- * By convention, it is usually called `ApplicationModule`.  Starting with this
- * module, Nest assembles the dependency graph and begins the process of
- * Dependency Injection and instantiates the classes needed to launch your
- * application.
- *
- * @publicApi
- */
 export const NestFactory = new NestFactoryStatic();

@@ -1,12 +1,12 @@
 import { ExceptionsHandler } from '../exceptions';
 import { ExecutionContextHost } from '../helpers';
 
-export type RouterProxyCallback = <TRequest, TResponse>(req?: TRequest, res?: TResponse, next?: () => void) => void;
+export type IRouterProxyCallback = <T, R>(req?: T, res?: R, next?: () => void) => void;
 
 export class RouterProxy {
 
-  public createProxy(targetCallback: RouterProxyCallback, exceptionsHandler: ExceptionsHandler) {
-    return <TRequest, TResponse>(req: TRequest, res: TResponse, next: () => void) => {
+  public createProxy(targetCallback: IRouterProxyCallback, exceptionsHandler: ExceptionsHandler) {
+    return <T, R>(req: T, res: R, next: () => void) => {
       try {
         targetCallback(req, res, next);
       } catch (e) {
@@ -16,11 +16,8 @@ export class RouterProxy {
     };
   }
 
-  public createExceptionLayerProxy(
-    targetCallback: <TError, TRequest, TResponse>(err: TError, req: TRequest, res: TResponse, next: () => void) => void,
-    exceptionsHandler: ExceptionsHandler,
-  ) {
-    return <TError, TRequest, TResponse>(err: TError, req: TRequest, res: TResponse, next: () => void) => {
+  public createExceptionLayerProxy(targetCallback: <E, T, R>(err: E, req: T, res: R, next: () => void) => void, exceptionsHandler: ExceptionsHandler) {
+    return <E, T, R>(err: E, req: T, res: R, next: () => void) => {
       try {
         targetCallback(err, req, res, next);
       } catch (e) {

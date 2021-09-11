@@ -1,22 +1,8 @@
 import { Type } from './type.interface';
-import { RouteInfo } from './middleware-configuration.interface';
-import { MiddlewareConsumer } from './middleware-consumer.interface';
+import { IRouteInfo } from './middleware-configuration.interface';
+import { IMiddlewareConsumer } from './middleware-consumer.interface';
 
-export interface MiddlewareConfigProxy {
-  /**
-   * Excludes routes from the currently processed middlewares.
-   *
-   * @param {(string | RouteInfo)[]} routes
-   * @returns {MiddlewareConfigProxy}
-   */
-  exclude(...routes: (string | RouteInfo)[]): MiddlewareConfigProxy;
-
-  /**
-   * Attaches passed either routes or controllers to the currently configured middlewares.
-   * If you pass a class, Nest would attach middlewares to every path defined within this controller.
-   *
-   * @param {(string | Type | RouteInfo)[]} routes
-   * @returns {MiddlewareConsumer}
-   */
-  forRoutes(...routes: (string | Type<any> | RouteInfo)[]): MiddlewareConsumer;
+export interface IMiddlewareConfigProxy {
+  exclude(...routes: (string | IRouteInfo)[]): IMiddlewareConfigProxy;
+  forRoutes(...routes: (string | Type<any> | IRouteInfo)[]): IMiddlewareConsumer;
 }

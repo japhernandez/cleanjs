@@ -1,49 +1,37 @@
-import { CONTROLLER_ID_KEY } from '../ioc/constants';
-import { ContextId } from '../ioc/instance-wrapper';
-import { ParamPropertiesContext } from './context-utils';
+import { CONTROLLER_ID_KEY, IContextId } from '../ioc';
+import { IParamPropertiesContext } from './context-utils';
 import {Controller, Type} from "../contracts";
 
 export const HANDLER_METADATA_SYMBOL = Symbol.for('handler_metadata:cache');
 
-export type HandleResponseFn = HandlerResponseBasicFn
+export type IHandleResponseFn = IHandlerResponseBasicFn
 
-export type HandlerResponseBasicFn = <TResult, TResponse>(
-  result: TResult,
-  res: TResponse,
-  req?: any,
-) => any;
+export type IHandlerResponseBasicFn = <T, R>(result: T, res: R, req?: any) => any;
 
-export interface HandlerMetadata {
+export interface IHandlerMetadata {
   argsLength: number;
-  paramtypes: any[];
+  paramTypes: any[];
   httpStatusCode: number;
   responseHeaders: any[];
   hasCustomHeaders: boolean;
-  getParamsMetadata: (
-    moduleKey: string,
-    contextId?: ContextId,
-    inquirerId?: string,
-  ) => (ParamPropertiesContext & { metatype?: any })[];
-  fnHandleResponse: HandleResponseFn;
+  getParamsMetadata: (moduleKey: string, contextId?: IContextId, inquirerId?: string) => (IParamPropertiesContext & { metaType?: any })[];
+  fnHandleResponse: IHandleResponseFn;
 }
 
-export class HandlerMetadataStorage<
-  TValue = HandlerMetadata,
-  TKey extends Type<unknown> = any
-> {
-  private readonly [HANDLER_METADATA_SYMBOL] = new Map<string, TValue>();
+export class HandlerMetadataStorage<V = IHandlerMetadata, K extends Type<unknown> = any> {
+  private readonly [HANDLER_METADATA_SYMBOL] = new Map<string, V>();
 
-  set(controller: TKey, methodName: string, metadata: TValue) {
+  set(controller: K, methodName: string, metadata: V) {
     const metadataKey = this.getMetadataKey(controller, methodName);
     this[HANDLER_METADATA_SYMBOL].set(metadataKey, metadata);
   }
 
-  get(controller: TKey, methodName: string): TValue | undefined {
+  get(controller: K, methodName: string): V | undefined {
     const metadataKey = this.getMetadataKey(controller, methodName);
     return this[HANDLER_METADATA_SYMBOL].get(metadataKey);
   }
 
-  private getMetadataKey(controller: Controller, methodName: string): string {
+  protected getMetadataKey(controller: Controller, methodName: string): string {
     const ctor = controller.constructor;
     const controllerKey = ctor && (ctor[CONTROLLER_ID_KEY] || ctor.name);
     return controllerKey + ' ' + methodName;
