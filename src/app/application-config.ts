@@ -18,12 +18,12 @@ export class ApplicationConfig {
     return this.globalPrefix;
   }
 
-  public addGlobalHandler(pipe: IHandlerTransform<any>) {
-    this.globalHandlers.push(pipe);
+  public addGlobalHandler(handler: IHandlerTransform<any>) {
+    this.globalHandlers.push(handler);
   }
 
-  public useGlobalHandler(...pipes: IHandlerTransform<any>[]) {
-    this.globalHandlers = this.globalHandlers.concat(pipes);
+  public useGlobalHandler(...handlers: IHandlerTransform<any>[]) {
+    this.globalHandlers = this.globalHandlers.concat(handlers);
   }
 
   public getGlobalFilters(): IExceptionFilter[] {

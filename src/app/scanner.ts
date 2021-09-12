@@ -350,7 +350,7 @@ export class DependenciesScanner {
     const applyProvidersMap = this.getApplyProvidersMap();
     const applyRequestProvidersMap = this.getApplyRequestProvidersMap();
 
-    const getInstanceWrapper = (moduleKey: string, providerKey: string, collectionKey: 'providers' | 'injectables') => {
+    const getInstanceWrapper = (moduleKey: string, providerKey: string, collectionKey: 'providers' | 'injectables' | 'adapters') => {
       const modules = this.container.getModules();
       const collection = modules.get(moduleKey)[collectionKey];
       return collection.get(providerKey);
@@ -363,6 +363,10 @@ export class DependenciesScanner {
           instanceWrapper = getInstanceWrapper(moduleKey, providerKey, 'injectables');
           return applyRequestProvidersMap[type as string](instanceWrapper);
         }
+
+        instanceWrapper = getInstanceWrapper(moduleKey, providerKey, 'adapters');
+        applyProvidersMap[type as string](instanceWrapper.instance);
+
         instanceWrapper = getInstanceWrapper(moduleKey, providerKey, 'providers');
         applyProvidersMap[type as string](instanceWrapper.instance);
       },
@@ -373,8 +377,8 @@ export class DependenciesScanner {
     return {
       [APP_INTERCEPTOR]: (interceptor: ICleanInterceptor) =>
         this.applicationConfig.addGlobalInterceptor(interceptor),
-      [APP_PIPE]: (pipe: IHandlerTransform) =>
-        this.applicationConfig.addGlobalHandler(pipe),
+      [APP_PIPE]: (handler: IHandlerTransform) =>
+        this.applicationConfig.addGlobalHandler(handler),
       [APP_FILTER]: (filter: IExceptionFilter) =>
         this.applicationConfig.addGlobalFilter(filter),
     };
@@ -384,8 +388,8 @@ export class DependenciesScanner {
     return {
       [APP_INTERCEPTOR]: (interceptor: InstanceWrapper<ICleanInterceptor>) =>
         this.applicationConfig.addGlobalRequestInterceptor(interceptor),
-      [APP_PIPE]: (pipe: InstanceWrapper<IHandlerTransform>) =>
-        this.applicationConfig.addGlobalRequestPipe(pipe),
+      [APP_PIPE]: (handler: InstanceWrapper<IHandlerTransform>) =>
+        this.applicationConfig.addGlobalRequestPipe(handler),
       [APP_FILTER]: (filter: InstanceWrapper<IExceptionFilter>) =>
         this.applicationConfig.addGlobalRequestFilter(filter),
     };

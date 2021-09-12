@@ -1,16 +1,16 @@
-import { ApplicationConfig } from '../app';
-import { CircularDependencyException, UndefinedForwardRefException, UnknownModuleException } from '../exceptions';
-import { ExternalContextCreator, HttpAdapterHost } from '../helpers';
+import { Module } from './module';
 import { REQUEST } from '../routers';
+import { ApplicationConfig } from '../app';
 import { ModuleCompiler } from './compiler';
 import { IContextId } from './instance-wrapper';
-import { InternalCoreModule } from './internal-core-module';
-import { InternalProvidersStorage } from './internal-providers-storage';
-import { Module } from './module';
-import { ModuleTokenFactory } from './module-token-factory';
-import { ModulesContainer } from './modules-container';
 import { GLOBAL_MODULE_METADATA } from '../utils';
+import { ModulesContainer } from './modules-container';
+import { ModuleTokenFactory } from './module-token-factory';
+import { InternalCoreModule } from './internal-core-module';
+import { ExternalContextCreator, HttpAdapterHost } from '../helpers';
+import { InternalProvidersStorage } from './internal-providers-storage';
 import {IDynamicModule, InjectableInterface, Provider, Type} from "../contracts";
+import { CircularDependencyException, UndefinedForwardRefException, UnknownModuleException } from '../exceptions';
 
 export class CleanContainer {
 
